@@ -1,12 +1,12 @@
-# 🎯 Estrutura do Projeto — Quiz App (React + Vite + Tailwind + MUI)
+# 🎯 Estrutura do Projeto — Quiz (React + Vite + Tailwind + MUI)
 
 Este documento descreve detalhadamente a estrutura de pastas e arquivos do projeto **Quiz App**, explicando o propósito de cada diretório e arquivo dentro da aplicação.
 
 ---
 
 ## 📁 Estrutura Geral
-
-quizAPS4B/
+```
+quizAPS4B/ 
 │
 ├── public/
 │ └── favicon.ico
@@ -30,7 +30,7 @@ quizAPS4B/
 ├── postcss.config.js
 ├── index.html
 └── README.md
-
+```
 
 ---
 
@@ -249,7 +249,7 @@ Neste projeto, seguimos o padrão **camelCase** e **PascalCase**, amplamente usa
     ```  
 
 ---
-###⚙️ 3. Nomes de Funções — boas práticas
+### ⚙️ 3. Nomes de Funções — boas práticas
 1. Use verbos descritivos que indiquem a ação executada:
     - get, set, handle, fetch, create, update, delete, validate, toggle
 
@@ -276,7 +276,7 @@ const [isLoading, setIsLoading] = useState(false);
 const [playerName, setPlayerName] = useState("");
 ```
 ---
-##🪝 5. Hooks personalizados
+### 🪝 5. Hooks personalizados
 
 Hooks devem sempre:
 
@@ -304,7 +304,7 @@ QuizContext
 ThemeContext
 ```
 ---
-###💬 7. Constantes e Objetos
+### 💬 7. Constantes e Objetos
 
 Constantes globais podem usar MAIÚSCULAS_COM_UNDERSCORE,
 mas variáveis internas e locais continuam em camelCase.

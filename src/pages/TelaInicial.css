@@ -1,0 +1,26 @@
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #171738;
+  
+    /* Linhas diagonais */
+    background-image: linear-gradient(135deg, #242453 25%, #171738 25%, #171738 50%, #242453 50%, #242453 75%, #171738 75%, #171738 100%);
+    background-size: 400px 400px;
+  
+    /* Animação vertical */
+    animation: moveVertical 10s linear infinite;
+    z-index: -1;
+  }
+  
+  @keyframes moveVertical {
+    from {
+      background-position-y: 0;
+    }
+    to {
+      background-position-y: 200px; /* move perpendicular às listras */
+    }
+  }
+  

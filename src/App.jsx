@@ -1,19 +1,18 @@
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from './pages/Home.jsx';
 import InicioSessao from './pages/InicioSessao/InicioSessao.jsx';
-
-import { useState } from 'react'
+import NotFound from './pages/NotFound.jsx';
 
 function App() {
-
   return (
-    <>
-      <InicioSessao />
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sessao" element={<InicioSessao />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

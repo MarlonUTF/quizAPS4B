@@ -15,8 +15,8 @@
     left: 50%;
     transform: translateX(-50%);
 
-    /* Estética */
-    background: linear-gradient(135deg, #0B2C63 0%, #3C7BF7 100%);
+    /* Estética - Gradiente atualizado para #5D9E9A com tom mais escuro */
+    background: #258a83;
     color: #fff;
     font-size: 1.1rem;
     font-weight: 600;
@@ -25,13 +25,12 @@
     border-radius: 14px;
     backdrop-filter: blur(12px);
 
-    /* Sombra mais suave e coerente */
+    /* Sombra atualizada para combinar com a nova cor */
     box-shadow:
-        0 6px 18px rgba(20, 60, 120, 0.35),
-        0 2px 8px rgba(30, 80, 180, 0.25);
+        0 6px 18px rgba(58, 110, 107, 0.35),
+        0 2px 8px rgba(93, 158, 154, 0.25);
 
     text-align: center;
-    cursor: not-allowed;
     overflow: hidden;
     z-index: 1000;
 
@@ -51,19 +50,7 @@
     }
 }
 
-/* Brilho respirando */
-@keyframes brilho {
-    0%, 100% {
-        box-shadow:
-            0 6px 18px rgba(20, 60, 120, 0.35),
-            0 2px 8px rgba(30, 80, 180, 0.25);
-    }
-    50% {
-        box-shadow:
-            0 10px 26px rgba(20, 60, 120, 0.55),
-            0 4px 12px rgba(30, 80, 180, 0.45);
-    }
-}
+
 
 /* Dots animados */
 .aguardando.dots::after {

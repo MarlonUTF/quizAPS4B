@@ -1,9 +1,10 @@
 .jogador {
     display: flex;
     align-items: center;
+    justify-content: center;
     margin: 10px;
     padding: 16px;
-    width: auto;
+    width: 220px;
     min-height: 70px;
     border: none;
     border-radius: 14px;
@@ -53,11 +54,6 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.jogador:active {
-    transform: translateY(-1px);
-    transition: transform 0.1s ease;
-}
-
 .jogador p {
     margin: 0 6px;
     font-family: 'Segoe UI', system-ui, sans-serif;
@@ -83,14 +79,6 @@
     letter-spacing: 0.2px;
 }
 
-/* Efeito de brilho sutil no hover */
-.jogador:hover::before {
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.25) 0%, 
-        rgba(255, 255, 255, 0.12) 50%,
-        rgba(255, 255, 255, 0) 100%);
-}
-
 /* Animação sutil de entrada */
 @keyframes fadeInUp {
     from {
@@ -105,24 +93,6 @@
 
 .jogador {
     animation: fadeInUp 0.4s ease-out;
-}
-
-/* Efeito de pulso sutil para indicar atividade */
-@keyframes subtlePulse {
-    0%, 100% {
-        box-shadow: 
-            0 3px 16px rgba(0, 0, 0, 0.08),
-            0 1px 6px rgba(0, 0, 0, 0.04);
-    }
-    50% {
-        box-shadow: 
-            0 3px 20px rgba(0, 0, 0, 0.12),
-            0 1px 8px rgba(0, 0, 0, 0.06);
-    }
-}
-
-.jogador.pulse {
-    animation: subtlePulse 2s ease-in-out infinite;
 }
 
 /* Responsividade */

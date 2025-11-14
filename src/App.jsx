@@ -5,6 +5,7 @@ import NotFound from './pages/NotFound.jsx';
 import TelaInicial from './pages/TelaInicial.jsx'
 import CriarConta from './pages/CriarConta.jsx'
 import TelaLoginJogador from './pages/TelaLoginJogador.jsx'
+import TelaLoginAdm from "./pages/TelaLoginAdm.jsx";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/criarconta" element={<CriarConta/>} />
         <Route path="*" element={<NotFound />} />
         <Route path="/telaloginjogador" element={<TelaLoginJogador />} />
+        <Route path="/telaloginadm" element={<TelaLoginAdm/>} />
       </Routes>
     </BrowserRouter>
   );

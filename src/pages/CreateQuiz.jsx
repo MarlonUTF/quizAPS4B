@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient"; 
+import { supabase } from "../supabaseClient";
 import "../index.css";
 
 export default function CreateQuiz() {
 
-  const [quizName, setQuizName] = useState("");
+  const [quiz_name, setQuizName] = useState("");
   const [quiz_description, setQuizDescription] = useState("");
-  const [option, setOption] = useState("")
+  const [option, setOption] = useState("");
 
   async function criar() {
+    console.log("funciona");
     const { data, error } = await supabase
-      .from("Quiz")
-      .insert([{ quiz_name: quizName, quiz_description: quiz_description }]) 
+      .from("Quiz2")
+      .insert([{ quiz_name: quiz_name, quiz_description: quiz_description }])
       .select();
 
     if (error) {
@@ -23,10 +24,10 @@ export default function CreateQuiz() {
     }
   }
 
-  async function criarOpcao(){
+  async function criarOpcao() {
     const { data, error } = await supabase
-      .from("Option")
-      .insert([{ option: option }]) 
+      .from("option")
+      .insert([{ option: option }])
       .select();
 
     if (error) {
@@ -37,7 +38,6 @@ export default function CreateQuiz() {
     }
   }
 
-
   return (
     <div className="container">
       <h1>New Quiz</h1>
@@ -46,14 +46,14 @@ export default function CreateQuiz() {
         <h2>Nome</h2>
         <input
           type="text"
-          name="quizName"
+          name="quiz_name"
           value={quizName}
           onChange={(e) => setQuizName(e.target.value)}
-          style={{ 
-            border: "2px solid black", 
-            padding: "6px", 
-            borderRadius: "4px", 
-            marginRight: "8px"
+          style={{
+            border: "2px solid black",
+            padding: "6px",
+            borderRadius: "4px",
+            marginRight: "8px",
           }}
         />
 
@@ -63,11 +63,11 @@ export default function CreateQuiz() {
           name="quiz_description"
           value={quiz_description}
           onChange={(e) => setQuizDescription(e.target.value)}
-          style={{ 
-            border: "2px solid black", 
-            padding: "6px", 
-            borderRadius: "4px", 
-            marginRight: "8px"
+          style={{
+            border: "2px solid black",
+            padding: "6px",
+            borderRadius: "4px",
+            marginRight: "8px",
           }}
         />
 
@@ -78,16 +78,25 @@ export default function CreateQuiz() {
 
       <div className="botons">
         <h2>Perguntas:</h2>
-        <button onClick={criarOpcao()}>+</button>
+
+        {/* CORRIGIDO: onClick recebe a função, não a execução */}
+        <button onClick={criarOpcao}>+</button>
+
         <button>Categoria</button>
         <button>Banco</button>
       </div>
 
       <div className="options">
-        <input 
-          type="text" 
-          placeholder="option 1" 
-          style={{ border: "2px solid black", padding: "6px", borderRadius: "4px" }} 
+        <input
+          type="text"
+          placeholder="option 1"
+          value={option}
+          onChange={(e) => setOption(e.target.value)}
+          style={{
+            border: "2px solid black",
+            padding: "6px",
+            borderRadius: "4px",
+          }}
         />
       </div>
     </div>

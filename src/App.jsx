@@ -14,6 +14,7 @@ function App() {
         <Route path="/inicio" element={<TelaInicial />} />
         <Route path="/criarconta" element={<CriarConta/>} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/telaloginjogador" element={<TelaLoginJogador />} />
       </Routes>
     </BrowserRouter>
   );

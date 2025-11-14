@@ -1,84 +1,55 @@
 import style from './jogador.module.css';
 
+// 🔹 Arrays globais para controle de uso
+let usedColors = [];
+let usedEmojis = [];
+
 export default function Jogador({ nome }) {
-    const emojis = [
-        '😀',
-        '😁',
-        '😆',
-        '😅',
-        '🤣',
-        '😂',
-        '😉',
-        '😇',
-        '🥰',
-        '😍',
-        '🤩',
-        '😘',
-        '😗',
-        '😙',
-        '🥲',
-        '😏',
-        '😋',
-        '🤪',
-        '😝',
-        '🤑',
-        '🤗',
-        '🤭',
-        '🫢',
-        '🫣',
-        '🤫',
-        '🤔',
-        '🫡',
-        '🤤',
-        '🤠',
-        '🥳',
-        '🥸',
-        '😎',
-        '🤓',
-        '🧐',
-        '🙃',
-        '🫠',
-        '🤐',
-        '🤨',
-        '😐',
-        '😑',
-        '😶',
-        '😶‍🌫️',
-        '😒',
-        '🙄',
-        '😬',
-        '😮‍💨',
-        '🤥',
-        '🫨',
-        '🙂‍↔️',
-        '🙂‍↕️'
-    ];
-    const pastelColors = [
-        'rgb(255, 223, 223)', // Rosa pastel suave
-        'rgb(255, 233, 213)', // Pêssego pastel
-        'rgb(255, 255, 223)', // Amarelo pastel
-        'rgb(223, 255, 223)', // Verde pastel claro
-        'rgb(223, 255, 255)', // Azul pastel claro
-        'rgb(233, 223, 255)', // Lilás pastel
-        'rgb(255, 213, 223)', // Rosa bebê
-        'rgb(255, 240, 213)', // Damasco pastel
-        'rgb(240, 255, 223)', // Verde limão pastel
-        'rgb(223, 240, 255)', // Azul céu pastel
-        'rgb(240, 223, 255)', // Lavanda pastel
-        'rgb(255, 223, 240)', // Rosa claro
-        'rgb(255, 247, 213)', // Amarelo creme
-        'rgb(213, 255, 233)', // Verde menta
-        'rgb(213, 233, 255)', // Azul gelo
-        'rgb(247, 223, 255)', // Lilás claro
-        'rgb(255, 230, 230)', // Rosa pálido
-        'rgb(255, 245, 230)', // Pêssego claro
-        'rgb(230, 255, 245)', // Verde água
-        'rgb(230, 240, 255)'  // Azul bebê
-      ];
-    return (
-        <div className={style.jogador} style={{backgroundColor: pastelColors[Math.floor(Math.random() * pastelColors.length)]}}>
-            <p>{emojis[Math.floor(Math.random() * emojis.length)]}</p>
-            <p>{nome}</p>
-        </div>
-    );
+  const emojis = [
+    '😀', '😁', '😆', '🤣', '😇', '😍', '🤩', '🥰',
+    '😘', '😋', '🤪', '😝', '🤑', '🤗', '🤭', '🤔',
+    '🤠', '🥳', '😎', '🤓', '🙃', '🤨', '😐', '😑'
+  ];
+
+  const pastelColors = [
+    'rgb(255, 160, 160)', // Rosa mais forte
+    'rgb(255, 180, 120)', // Pêssego mais vivo
+    'rgb(255, 255, 150)', // Amarelo mais intenso
+    'rgb(170, 255, 170)', // Verde mais vivo
+    'rgb(150, 240, 240)', // Azul mais forte
+    'rgb(190, 160, 255)', // Lilás mais vibrante
+    'rgb(255, 140, 170)', // Rosa chiclete
+    'rgb(255, 200, 140)', // Damasco quente
+    'rgb(200, 255, 150)', // Verde-limão mais vivo
+    'rgb(150, 210, 255)', // Azul céu médio
+    'rgb(230, 170, 255)', // Lilás intenso
+    'rgb(255, 215, 170)', // Pêssego vibrante
+    'rgb(170, 255, 220)', // Verde água forte
+    'rgb(170, 200, 255)'  // Azul bebê mais marcante
+  ];
+
+  // 🔸 Função genérica para pegar item aleatório sem repetição
+  function getUniqueItem(array, usedArray) {
+    // Se já usou todas as opções, limpa e recomeça
+    if (usedArray.length === array.length) usedArray.length = 0;
+
+    let index;
+    do {
+      index = Math.floor(Math.random() * array.length);
+    } while (usedArray.includes(index));
+
+    usedArray.push(index);
+    return array[index];
+  }
+
+  // 🔹 Escolher cor e emoji únicos
+  const color = getUniqueItem(pastelColors, usedColors);
+  const emoji = getUniqueItem(emojis, usedEmojis);
+
+  return (
+    <div className={style.jogador} style={{ backgroundColor: color }}>
+      <p>{emoji}</p>
+      <p>{nome}</p>
+    </div>
+  );
 }

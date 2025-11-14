@@ -4,6 +4,7 @@ import InicioSessao from './pages/InicioSessao/InicioSessao.jsx';
 import NotFound from './pages/NotFound.jsx';
 import TelaInicial from './pages/TelaInicial.jsx'
 import CriarConta from './pages/CriarConta.jsx'
+import TelaLoginJogador from './pages/TelaLoginJogador.jsx'
 
 function App() {
   return (

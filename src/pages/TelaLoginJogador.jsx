@@ -2,7 +2,7 @@ import "./TelaLoginJogador.css"
 import Logo from "../../public/logo.png"
 export default function TelaLoginJogador (){
     return(
-        <div className="container">
+        <div className="telaLoginJogador">
             <img src={Logo} alt="" height={100} width={100}/>
             <div className="login">
             <h1>Login</h1>

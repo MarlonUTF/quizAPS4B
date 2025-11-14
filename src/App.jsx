@@ -2,9 +2,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from './pages/Home.jsx';
 import InicioSessao from './pages/InicioSessao/InicioSessao.jsx';
 import NotFound from './pages/NotFound.jsx';
+<<<<<<<<< Temporary merge branch 1
 import TelaLoginJogador from './pages/TelaLoginJogador.jsx';
+=========
 import TelaInicial from './pages/TelaInicial.jsx'
 import CriarConta from './pages/CriarConta.jsx'
+>>>>>>>>> Temporary merge branch 2
 
 function App() {
   return (

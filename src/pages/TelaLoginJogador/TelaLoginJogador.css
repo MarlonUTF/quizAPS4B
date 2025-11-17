@@ -1,0 +1,107 @@
+.telaLoginJogador{
+    background-color: #171738;
+    width:100%;  
+    height: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.container{
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo{
+    width: 10rem;
+    height: auto;
+    position: absolute;
+    left: 5rem;
+    top: 5rem;
+    transform: translateX(-20%);
+    transform: translateY(-20%);
+}
+
+.login{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.telaLoginJogador input{
+    background-color: rgba(255, 254, 254, 0.41);
+    border-radius: 10px;
+    border: 2px solid white;
+    padding: 10px;
+    text-align: center;
+    color: #171738;  
+}
+
+input{
+    width: 100%;
+    box-shadow: 0 0 0 0;
+    border: 0 none;
+    outline: 0;
+
+    color: #171738;
+    font-size: 1.3rem;
+    font-weight: 450;
+}
+
+input::placeholder{
+    color: #171738;
+    font-size: 1.3rem;
+    font-weight: 450;
+}
+
+.inputBox{
+    width: 20.625rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+h1{
+    color: #6565ac;
+    font-size: 3.5rem;
+    font-weight: bold;
+   
+}
+.buttonEntrar{
+    background-color: #db5461;
+    border-radius: 10px;
+    border: 2px solid white;
+    padding: 1rem;
+    
+    font-size: 1.3rem;
+    font-weight: 450;
+}
+
+img {
+    padding: 10px;
+}
+
+.mudar{
+    background-color:#258a83;
+    border-radius: 10px;
+    border: 2px solid white;
+    padding: 1rem;
+}
+
+.emoji{
+    background-color: rgba(255, 254, 254, 0.41);
+    border-radius: 50%;
+    padding: 0.4rem;
+    font-size: 2rem;
+    align-self: center;
+    height: auto;
+}

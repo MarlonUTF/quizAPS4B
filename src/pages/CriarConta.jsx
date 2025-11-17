@@ -1,10 +1,11 @@
+import "./CriarConta.css"
 import Logo from "../../public/logo.png"
 export default function CriarConta(){
     return(
-        <div style={{ width: "100vw",height: "100vh",backgroundColor:"#171738"}}>
+        <div  style={{ width: "100vw",height: "100vh",backgroundColor:"#171738"}}>
             <img src={Logo} alt="" width={100}/>
             <div className="criarConta" style={{display:"flex",flexDirection:"column",justifyContent:"center", alignItems:"center"}} >
-                <h1>Criar conta</h1>
+                <h1>Criar Conta</h1>
                 <div style={{display:"flex",flexDirection:"column",backgroundColor:"white",padding:"20px",borderRadius:"10px",gap:"2px"}} > 
                     <p>Nome</p>
                     <input type="text" />

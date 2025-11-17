@@ -4,9 +4,9 @@ export default function Home(){
     return(
         <div>
             <header style={{backgroundColor:"gray", width:"100vw",height:"6vh"}}></header>
-            <div style={{ display:"flex",flexDirection:"column",justifyContent:"center", alignItems:"center", width:"100vw", height:"100vh", gap:"20px"}}>
+            <div style={{ display:"flex",flexDirection:"column",justifyContent:"center", alignItems:"center", width:"100vw", height:"94vh", gap:"20px"}}>
             
-            <img src={Logo} alt="" height={10} width={100}/>
+            <img src={Logo} alt="" height={100} width={100}/>
              <h1>Olá usuário!</h1>
             <div style={{ display: "flex" , gap:"10px"}}>
                 <div style={{display:"flex", flexDirection:"column",alignItems:"center", gap:"10px"}}>

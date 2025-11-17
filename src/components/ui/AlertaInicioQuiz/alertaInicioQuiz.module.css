@@ -1,0 +1,206 @@
+/* Container principal do alerta */
+.alertaInicio {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Conteúdo do alerta */
+.conteudoAlerta {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 50px 80px;
+    border-radius: 20px;
+    box-shadow: 
+        0 0 0 10px rgba(255, 255, 255, 0.1),
+        0 0 50px rgba(102, 126, 234, 0.5),
+        0 0 100px rgba(118, 75, 162, 0.3);
+    transform: scale(0.8);
+    animation: 
+        entradaEpica 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+        flutuar 3s ease-in-out infinite 0.6s;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efeito de partículas brilhantes */
+.conteudoAlerta::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 70%
+    );
+    animation: rotarBrillo 4s linear infinite;
+}
+
+/* Texto principal */
+.tituloJogo {
+    font-size: 4rem;
+    font-weight: 900;
+    color: white;
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.5),
+        0 0 20px rgba(102, 126, 234, 0.8),
+        0 0 30px rgba(118, 75, 162, 0.6);
+    animation: 
+        textoBrillante 2s ease-in-out infinite alternate,
+        entradaTexto 0.5s ease-out 0.3s both;
+}
+
+/* Subtítulo */
+.subtitulo {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    animation: fadeInUp 0.5s ease-out 0.4s both;
+}
+
+/* Contador regressivo */
+.contador {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #FFD700;
+    text-shadow: 
+        0 0 10px #FFD700,
+        0 0 20px #FF6B00,
+        0 0 30px #FF0080;
+    animation: pulsarContador 1s ease-in-out infinite;
+    margin: 20px 0;
+}
+
+/* ANIMAÇÕES REVISADAS */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes entradaEpica {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes flutuar {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-8px) rotate(0.5deg);
+    }
+}
+
+@keyframes rotarBrillo {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes textoBrillante {
+    from {
+        text-shadow: 
+            0 0 10px rgba(255, 255, 255, 0.5),
+            0 0 20px rgba(102, 126, 234, 0.8),
+            0 0 30px rgba(118, 75, 162, 0.6);
+    }
+    to {
+        text-shadow: 
+            0 0 15px rgba(255, 255, 255, 0.8),
+            0 0 30px rgba(102, 126, 234, 1),
+            0 0 45px rgba(118, 75, 162, 0.8),
+            0 0 60px rgba(255, 0, 128, 0.4);
+    }
+}
+
+@keyframes entradaTexto {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulsarContador {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Fade-out com zoom rápido e elegante */
+.fadeOutZoomSoft {
+    animation: fadeOutZoomSoftAnim 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeOutZoomSoftAnim {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0px);
+    }
+    40% {
+        opacity: 0.7;
+        transform: scale(1.3);
+        filter: blur(1px);
+    }
+    70% {
+        opacity: 0.3;
+        transform: scale(1.8);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2.2);
+        filter: blur(3px);
+    }
+}

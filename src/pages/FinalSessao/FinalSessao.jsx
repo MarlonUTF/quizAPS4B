@@ -1,60 +1,31 @@
-import Jogador from "../../components/ui/Jogador/Jogador";
-import Header from "../../components/layout/Header/Header";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
+// No seu componente/layout pai
+import FinalSessao from "../../components/layout/Colocacao/Colocacao";
 
-function createData(name, calories, fat, carbs) {
-  return { name, calories, fat, carbs};
-}
+export default function LayoutPai() {
+  const jogadoresReais = [
+    { nome: "João Silva", emoji: "🚀", cor: "#FF6B6B", acertos: 7 },
+    { nome: "Maria Santos", emoji: "⭐", cor: "#4ECDC4", acertos: 9 },
+    // ... outros jogadores
+  ];
 
-const rows = [
-  createData(
-    "Frozen yoghurt",
-    <Jogador nome="Gabriel Oliveira" emoji="🎬" cor="#D7BDE2" />,
-    6.0,
-    24
-  ),
-  createData("Ice cream sandwich", 237, 9.0, 37),
-  createData("Eclair", 262, 16.0, 24),
-  createData("Cupcake", 305, 3.7, 67),
-  createData("Gingerbread", 356, 16.0, 49),
-];
-
-export default function FinalSessao() {
   return (
-    <div>
-      <Header />
-
-      <div>
-        <Table sx={{ maxWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Dessert (100g serving)</TableCell>
-              <TableCell align="center">Calories</TableCell>
-              <TableCell align="right">Fat&nbsp;(g)</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow
-                key={row.name}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {row.name}
-                </TableCell>
-                <TableCell align="right">{row.calories}</TableCell>
-                <TableCell align="right">{row.fat}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <div className="seu-layout">
+      <Header /> {/* Seu header do layout */}
+      
+      <div className="conteudo-principal">
+        {/* Outros componentes... */}
+        
+        <FinalSessao 
+          jogadores={jogadoresReais}
+          titulo="Resultado da Partida"
+          mostrarDadosExemplo={false}
+        />
+        
+        {/* Ou para desenvolvimento: */}
+        {/* <FinalSessao mostrarDadosExemplo={true} /> */}
       </div>
+      
+      <Footer /> {/* Seu footer do layout */}
     </div>
   );
 }

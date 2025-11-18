@@ -1,0 +1,38 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* ResultadoContainer.module.css */
+.container {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+.chartSection, .tableSection {
+  flex: 1;
+  min-width: 0; /* Permite que os itens encolham */
+}
+
+/* Layout lado a lado em telas grandes */
+@media (min-width: 1200px) {
+  .container {
+    flex-direction: row;
+  }
+}
+
+/* Layout empilhado em telas menores */
+@media (max-width: 1199px) {
+  .container {
+    flex-direction: column;
+  }
+  
+  .chartSection, .tableSection {
+    width: 100%;
+  }
+}

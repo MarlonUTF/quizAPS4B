@@ -3,17 +3,20 @@ import { supabase } from "../supabaseClient";
 import "../index.css";
 
 export default function CreateQuiz() {
-  // Estados do Quiz
   const [quizName, setQuizName] = useState("");
   const [quizDescription, setQuizDescription] = useState("");
-  const [quizId, setQuizId] = useState(null);
+  const [quizId, setQuizId] = useState(null); // ID do Quiz principal
 
-  // Estados das perguntas
-  const [questions, setQuestions] = useState([]);
+  // Mantive o state para a pergunta e opções atuais, mas removemos 'questions'
   const [currentQuestionText, setCurrentQuestionText] = useState("");
   const [currentOptions, setCurrentOptions] = useState([""]);
 
-  // Criar quiz no banco e salvar ID
+  // --- Nomes das Tabelas (Estrutura para você customizar) ---
+  const TABLE_QUESTION = "question";
+  const TABLE_PIVOT = "quiz_question";
+  const TABLE_OPTION = "option";
+  // --------------------------------------------------------
+
   async function criarQuiz() {
     const { data, error } = await supabase
       .from("quiz")
@@ -31,88 +34,90 @@ export default function CreateQuiz() {
     setQuizDescription("");
   }
 
-  // Adiciona uma pergunta temporária à lista de perguntas
-  function adicionarPergunta() {
-    if (!currentQuestionText.trim()) return;
+  // NOVA FUNÇÃO: Salva a pergunta e suas opções diretamente no banco de dados
+  async function salvarPerguntaNoBanco() {
+    if (!quizId) {
+      alert("Crie primeiro o quiz!");
+      return;
+    }
 
+    if (!currentQuestionText.trim()) {
+      alert("O texto da pergunta não pode estar vazio.");
+      return;
+    }
+
+    // 1. Validar e filtrar opções
     const filteredOptions = currentOptions.filter(o => o.trim() !== "");
     if (filteredOptions.length === 0) {
       alert("Adicione pelo menos uma opção!");
       return;
     }
 
-    setQuestions([
-      ...questions,
-      { question_text: currentQuestionText, options: filteredOptions }
-    ]);
+    // --- 1. INSERIR NA TABELA 'question' ---
+    const { data: questionData, error: questionError } = await supabase
+      .from(TABLE_QUESTION)
+      .insert([{ question_text: currentQuestionText }])
+      .select();
+
+    if (questionError) {
+      console.error("Erro ao criar pergunta:", questionError.message);
+      return;
+    }
+
+    const newQuestionId = questionData[0].id;
+    console.log(`Questão criada com sucesso. ID: ${newQuestionId}`);
+
+
+    // --- 2. INSERIR NA TABELA PIVÔ 'quiz_question' (Associação Quiz-Pergunta) ---
+    const { error: pivotError } = await supabase
+      .from(TABLE_PIVOT)
+      .insert([{ quiz_id: quizId, question_id: newQuestionId }]);
+
+    if (pivotError) {
+      console.error("Erro ao associar pergunta ao quiz:", pivotError.message);
+      // Você pode querer reverter a inserção da pergunta aqui, se necessário.
+    }
+
+
+    // --- 3. INSERIR NA TABELA 'options' ---
+    const optionsToInsert = filteredOptions.map(opt => ({
+      question_id: newQuestionId,
+      option_text: opt
+    }));
+
+    const { data: optionData, error: optionError } = await supabase
+      .from(TABLE_OPTION)
+      .insert(optionsToInsert)
+      .select();
+
+    if (optionError) {
+      console.error("Erro ao criar opções:", optionError.message);
+    } else {
+      console.log("Opções criadas com sucesso:", optionData);
+      alert("Pergunta e opções salvas com sucesso!");
+    }
 
     setCurrentQuestionText("");
     setCurrentOptions([""]);
   }
 
-  // Atualiza uma opção temporária
   function updateCurrentOption(index, value) {
     const newOptions = [...currentOptions];
     newOptions[index] = value;
     setCurrentOptions(newOptions);
   }
 
-  // Adiciona uma opção temporária
   function addCurrentOption() {
     setCurrentOptions([...currentOptions, ""]);
   }
-
-  // Salva todas as perguntas e opções no banco
-  async function salvarPerguntas() {
-    if (!quizId) {
-      alert("Crie primeiro o quiz!");
-      return;
-    }
-
-    for (const q of questions) {
-      // Inserir pergunta
-      const { data: questionData, error: questionError } = await supabase
-        .from("quiz_question")
-        .insert([{ quiz_id: quizId, question_text: q.question_text }])
-        .select();
-
-      if (questionError) {
-        console.error("Erro ao criar pergunta:", questionError.message);
-        continue;
-      }
-
-      const qId = questionData[0].id;
-
-      // Inserir opções
-      const optionsToInsert = q.options.map(opt => ({
-        question_id: qId,
-        option_text: opt
-      }));
-
-      const { data: optionData, error: optionError } = await supabase
-        .from("options")
-        .insert(optionsToInsert)
-        .select();
-
-      if (optionError) {
-        console.error("Erro ao criar opções:", optionError.message);
-      } else {
-        console.log("Opções criadas com sucesso:", optionData);
-      }
-    }
-
-    // Reset após salvar
-    setQuestions([]);
-    setCurrentQuestionText("");
-    setCurrentOptions([""]);
-    alert("Todas as perguntas foram salvas!");
-  }
+  
+  // A função salvarPerguntas foi removida e substituída por salvarPerguntaNoBanco
+  // Não há mais um array de perguntas para iterar.
 
   return (
     <div className="container">
       <h1>New Quiz</h1>
 
-      {/* Criar Quiz */}
       <div>
         <h2>Nome</h2>
         <input
@@ -128,10 +133,12 @@ export default function CreateQuiz() {
           onChange={e => setQuizDescription(e.target.value)}
           style={{ border: "2px solid black", padding: "6px", borderRadius: "4px", marginRight: "8px" }}
         />
-        <button onClick={criarQuiz}>Criar Quiz</button>
+        <button onClick={criarQuiz} disabled={!!quizId}>
+          {quizId ? "Quiz Criado" : "Criar Quiz"}
+        </button>
+        {quizId && <p>✅ Quiz ID: **{quizId.substring(0, 8)}...**</p>}
       </div>
 
-      {/* Criar Pergunta */}
       {quizId && (
         <div className="botons" style={{ marginTop: "20px" }}>
           <h2>Nova Pergunta:</h2>
@@ -156,25 +163,14 @@ export default function CreateQuiz() {
           <button onClick={addCurrentOption}>Adicionar Opção</button>
 
           <div style={{ marginTop: "10px" }}>
-            <button onClick={adicionarPergunta}>Adicionar Pergunta à Lista</button>
+            {/* Este botão agora salva diretamente */}
+            <button 
+              onClick={salvarPerguntaNoBanco} 
+              disabled={!currentQuestionText.trim()}
+            >
+              Salvar Pergunta no Banco
+            </button>
           </div>
-
-          {questions.length > 0 && (
-            <div style={{ marginTop: "20px" }}>
-              <h3>Perguntas na Lista:</h3>
-              <ul>
-                {questions.map((q, i) => (
-                  <li key={i}>
-                    <strong>{q.question_text}</strong>
-                    <ul>
-                      {q.options.map((o, j) => <li key={j}>{o}</li>)}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-              <button onClick={salvarPerguntas}>Salvar Todas Perguntas no Banco</button>
-            </div>
-          )}
         </div>
       )}
     </div>

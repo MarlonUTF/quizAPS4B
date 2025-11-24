@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import styles from './verticalBarChart.module.css';
 
-// Função para processar e ordenar os jogadores
 function processarJogadores(jogadores) {
   if (!jogadores || !Array.isArray(jogadores)) return [];
   
@@ -19,45 +18,28 @@ function processarJogadores(jogadores) {
 
 export default function VerticalBarChart({ 
   jogadores = [], 
-  titulo = "Desempenho dos Jogadores",
+  titulo = "Performance da Partida",
   mostrarDadosExemplo = false 
 }) {
-  const [animated, setAnimated] = useState(false);
   const [hasScroll, setHasScroll] = useState(false);
   const chartContainerRef = useRef(null);
   const processedJogadores = processarJogadores(jogadores);
 
   const dadosExemplo = [
-    { nome: "usuario1", emoji: "😊", cor: "#FF6B6B", acertos: 30 },
-    { nome: "usuario2", emoji: "😎", cor: "#4ECDC4", acertos: 10 },
-    { nome: "usuario3", emoji: "🤠", cor: "#45B7D1", acertos: 20 },
-    { nome: "usuario4", emoji: "🤖", cor: "#FFBE0B", acertos: 40 },
-    { nome: "usuario5", emoji: "👻", cor: "#FF9F1C", acertos: 25 },
-    { nome: "usuario6", emoji: "🐱", cor: "#E71D36", acertos: 35 },
-    { nome: "usuario7", emoji: "🦊", cor: "#2EC4B6", acertos: 15 },
-    { nome: "usuario8", emoji: "🐼", cor: "#9370DB", acertos: 45 },
-    { nome: "usuario9", emoji: "🦁", cor: "#FFD700", acertos: 5 },
-    { nome: "usuario10", emoji: "🐯", cor: "#FF6347", acertos: 50 },
-    { nome: "usuario11", emoji: "🐶", cor: "#20B2AA", acertos: 18 },
-    { nome: "usuario12", emoji: "🐨", cor: "#DEB887", acertos: 32 }
+    { nome: "usuario1", emoji: "😊", cor: "#FF6B6B", acertos: 80 },
+    { nome: "usuario2", emoji: "😎", cor: "#4ECDC4", acertos: 60 },
+    { nome: "usuario3", emoji: "🤠", cor: "#45B7D1", acertos: 40 },
+    { nome: "usuario4", emoji: "🤖", cor: "#FFBE0B", acertos: 30 },
+    { nome: "usuario5", emoji: "👻", cor: "#FF9F1C", acertos: 20 },
+    { nome: "usuario6", emoji: "🐱", cor: "#E71D36", acertos: 10 }
   ];
 
   const dadosParaExibir = mostrarDadosExemplo && processedJogadores.length === 0 
     ? processarJogadores(dadosExemplo) 
     : processedJogadores;
 
-  // Encontrar o máximo para normalizar as barras
   const maxAcertos = Math.max(...dadosParaExibir.map(j => j.acertos), 1);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimated(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Verificar se o container tem scroll
   useEffect(() => {
     const checkScroll = () => {
       if (chartContainerRef.current) {
@@ -67,8 +49,6 @@ export default function VerticalBarChart({
     };
 
     checkScroll();
-    
-    // Re-verificar quando a janela for redimensionada
     window.addEventListener('resize', checkScroll);
     
     return () => {
@@ -77,13 +57,12 @@ export default function VerticalBarChart({
   }, [dadosParaExibir.length]);
 
   const calcularAlturaBarra = (acertos) => {
-    return Math.max((acertos / maxAcertos) * 100, 8); // Mínimo de 8% para visualização
+    return Math.max((acertos / maxAcertos) * 100, 5);
   };
 
-  // Gerar linhas de grade
   const gerarGrade = () => {
     const linhas = [];
-    const numLinhas = 5;
+    const numLinhas = 4;
     
     for (let i = 0; i <= numLinhas; i++) {
       const valor = Math.round((maxAcertos / numLinhas) * i);
@@ -97,32 +76,28 @@ export default function VerticalBarChart({
     return linhas;
   };
 
-  // Determinar se deve usar modo compacto
-  const isCompactMode = dadosParaExibir.length > 8;
+  const isCompactMode = dadosParaExibir.length > 6;
 
   return (
     <div className={styles.container}>
-      <div className={`${styles.content} ${isCompactMode ? styles.compact : ''} ${hasScroll ? styles.hasScroll : ''}`}>
+      <div className={`${styles.content} ${isCompactMode ? styles.compact : ''}`}>
         <div className={styles.header}>
           <h1 className={styles.title}>{titulo}</h1>
           {dadosParaExibir.length > 0 && (
             <p className={styles.subtitle}>
-              {dadosParaExibir.length} jogador{dadosParaExibir.length !== 1 ? 'es' : ''} 
-              {mostrarDadosExemplo && processedJogadores.length === 0 ? ' (demonstração)' : ''}
+              {dadosParaExibir.length} jogador{dadosParaExibir.length !== 1 ? 'es' : ''}
             </p>
           )}
         </div>
 
         <div className={styles.chartWrapper}>
-          {/* Grade de referência */}
           <div className={styles.chartGrid}>
             {gerarGrade()}
           </div>
 
-          {/* Indicador de scroll (apenas se houver muitos itens) */}
-          {hasScroll && dadosParaExibir.length > 6 && (
+          {hasScroll && dadosParaExibir.length > 5 && (
             <div className={styles.scrollHint}>
-              ← Deslize →
+              →
             </div>
           )}
 
@@ -134,7 +109,7 @@ export default function VerticalBarChart({
               <div 
                 key={index} 
                 className={styles.barColumn}
-                style={{ animationDelay: `${index * 0.1 + 0.2}s` }}
+                style={{ animationDelay: `${index * 0.08 + 0.1}s` }}
               >
                 <div className={styles.barWrapper}>
                   <div
@@ -142,7 +117,7 @@ export default function VerticalBarChart({
                     style={{
                       backgroundColor: jogador.cor,
                       height: `${calcularAlturaBarra(jogador.acertos)}%`,
-                      animationDelay: `${index * 0.1 + 0.5}s`
+                      animationDelay: `${index * 0.08 + 0.3}s`
                     }}
                   >
                     <span className={styles.barLabel}>
@@ -164,7 +139,7 @@ export default function VerticalBarChart({
         {processedJogadores.length === 0 && !mostrarDadosExemplo && (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>📊</div>
-            <p className={styles.emptyText}>Nenhum dado disponível para exibir</p>
+            <p className={styles.emptyText}>Sem dados</p>
           </div>
         )}
       </div>

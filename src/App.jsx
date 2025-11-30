@@ -1,12 +1,16 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from './pages/Home.jsx';
+import Home from './pages/Home/Home.jsx';
 import InicioSessao from './pages/InicioSessao/InicioSessao.jsx';
-import NotFound from './pages/NotFound.jsx';
-import TelaInicial from './pages/TelaInicial.jsx'
-import CriarConta from './pages/CriarConta.jsx'
+import NotFound from './pages/NotFound/NotFound.jsx';
+import TelaInicial from './pages/TelaInicial/TelaInicial.jsx'
+import CriarConta from './pages/CriarConta/CriarConta.jsx'
 import TelaLoginJogador from './pages/TelaLoginJogador/TelaLoginJogador.jsx';
+<<<<<<< HEAD
 import TelaLoginAdm from "./pages/TelaLoginAdm.jsx";
 import FinalSessao from "./pages/FinalSessao/FinalSessao.jsx"
+=======
+import TelaLoginAdm from "./pages/TelaLoginAdm/TelaLoginAdm.jsx";
+>>>>>>> origin/main
 
 function App() {
   return (

@@ -5,12 +5,8 @@ import NotFound from './pages/NotFound/NotFound.jsx';
 import TelaInicial from './pages/TelaInicial/TelaInicial.jsx'
 import CriarConta from './pages/CriarConta/CriarConta.jsx'
 import TelaLoginJogador from './pages/TelaLoginJogador/TelaLoginJogador.jsx';
-<<<<<<< HEAD
-import TelaLoginAdm from "./pages/TelaLoginAdm.jsx";
-import FinalSessao from "./pages/FinalSessao/FinalSessao.jsx"
-=======
 import TelaLoginAdm from "./pages/TelaLoginAdm/TelaLoginAdm.jsx";
->>>>>>> origin/main
+import FinalSessao from "./pages/FinalSessao/FinalSessao.jsx"
 
 function App() {
   return (

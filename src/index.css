@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items:center;
+    margin-top: 20px;
+}
+
+.botons{
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+.botons button{
+    border: "2px solid black";
+}

@@ -1,0 +1,44 @@
+.inicioSessao {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100vw;
+    height: 100vh;
+
+    background-color: #593C8F;
+}
+
+.titulo {
+    display: flex;
+    justify-content: center;
+
+    color: #BEBEED;
+    font-size: xx-large;
+    font-weight: bolder;
+
+    width: 100vw;
+    height: 20vh;
+}
+
+.logo {
+    width: 100px;
+    height: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.textoTitulo {
+    position: absolute;
+    left: 10%;
+    align-self: flex-end;
+}
+
+.jogadores{
+    display: flex;
+    max-width: 80vw;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,18 +1,26 @@
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-import './pages/CreateQuiz/CreateQuiz'
-
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from './pages/Home/Home.jsx';
+import InicioSessao from './pages/InicioSessao/InicioSessao.jsx';
+import NotFound from './pages/NotFound/NotFound.jsx';
+import TelaInicial from './pages/TelaInicial/TelaInicial.jsx'
+import CriarConta from './pages/CriarConta/CriarConta.jsx'
+import TelaLoginJogador from './pages/TelaLoginJogador/TelaLoginJogador.jsx';
+import TelaLoginAdm from "./pages/TelaLoginAdm/TelaLoginAdm.jsx";
 
 function App() {
-
   return (
-    <>
-    <CreateQuiz/>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sessao" element={<InicioSessao />} />
+        <Route path="/inicio" element={<TelaInicial />} />
+        <Route path="/criarconta" element={<CriarConta/>} />
+        <Route path="*" element={<NotFound />} />
+        <Route path="/telaloginjogador" element={<TelaLoginJogador />} />
+        <Route path="/telaloginadm" element={<TelaLoginAdm/>} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

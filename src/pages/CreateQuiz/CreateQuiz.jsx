@@ -42,9 +42,6 @@ export default function CreateQuiz() {
     setOptions(novas);
   };
 
-  // -------------------------------------------------------------
-  // ADICIONAR MAIS OPCÕES
-  // -------------------------------------------------------------
   const adicionarOpcao = () => {
     setOptions([
       ...options,
@@ -119,9 +116,6 @@ export default function CreateQuiz() {
     ]);
   };
 
-  // -------------------------------------------------------------
-  // RENDER
-  // -------------------------------------------------------------
   return (
     <div style={{ padding: 20 }}>
       <h2>Criar Quiz</h2>

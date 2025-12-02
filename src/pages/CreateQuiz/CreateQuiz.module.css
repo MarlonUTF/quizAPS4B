@@ -1,3 +1,5 @@
+/* CreateQuiz.module.css */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@300;400;500;600;700&display=swap');
 
 .pageContainer {
   width: 100%;
@@ -6,11 +8,14 @@
   padding: 40px 20px;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  font-family: 'Inter', sans-serif;
 }
 
 .content {
   width: 100%;
   max-width: 900px;
+  margin: 0 auto;
 }
 
 /* ============================
@@ -23,14 +28,27 @@
   margin-bottom: 40px;
   font-family: "Fredoka One", cursive;
   color: #000;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2rem;
+  }
 }
 
 /* ============================
-   Input da sala
+   Inputs
 ================================*/
 
 .formGroup {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .label {
@@ -38,21 +56,85 @@
   font-weight: bold;
   margin-bottom: 10px;
   display: block;
+  color: #333;
 }
 
 .input {
   width: 100%;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   padding: 12px 15px;
   border-radius: 16px;
   border: 2px solid #d7b3ad;
   outline: none;
   background-color: #ffece8;
   transition: 0.2s ease-in-out;
+  font-family: 'Inter', sans-serif;
+  resize: vertical;
 }
 
 .input:focus {
   border-color: #b18b84;
+}
+
+.input::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+/* ============================
+   Botões
+================================*/
+
+.quizActions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  background-color: #644dc4;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 12px 32px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  text-transform: none;
+}
+
+.primaryButton:hover {
+  background-color: #553cb3;
+  transform: translateY(-2px);
+}
+
+.primaryButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.quizId {
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Separador */
+.separator {
+  height: 2px;
+  background-color: #d7b3ad;
+  margin: 30px 0;
+  width: 100%;
 }
 
 /* ============================
@@ -64,6 +146,43 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 25px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.iconButton {
+  background-color: white;
+  border: 2px solid #d7b3ad;
+  border-radius: 20px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+
+.iconButton:hover {
+  background-color: #ffe7e2;
+  transform: scale(1.05);
+}
+
+.plusIcon {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
 }
 
 .actionBtn {
@@ -73,11 +192,20 @@
   padding: 8px 18px;
   font-size: 1.1rem;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
 }
 
 .actionBtn:hover {
   background-color: #ffe7e2;
+  transform: translateY(-2px);
+}
+
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Dropdown */
@@ -88,6 +216,13 @@
   border: 2px solid #d7b3ad;
   cursor: pointer;
   font-size: 1.1rem;
+  font-family: 'Inter', sans-serif;
+  min-width: 120px;
+  transition: all 0.2s;
+}
+
+.dropdown:hover {
+  background-color: #ffe7e2;
 }
 
 /* ============================
@@ -99,14 +234,133 @@
   padding: 22px;
   border-radius: 18px;
   margin-bottom: 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.questionCard.editing {
+  box-shadow: 0 4px 20px rgba(100, 77, 196, 0.2);
+  border: 2px solid #644dc4;
+}
+
+.questionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .questionHeader {
   font-size: 1.3rem;
   font-weight: bold;
-  margin-bottom: 18px;
+  color: #333;
+  margin: 0;
+}
+
+.questionActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.expandButton {
+  background-color: #644dc4;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.expandButton:hover {
+  background-color: #553cb3;
+  transform: scale(1.1);
+}
+
+.deleteButton {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  background-color: #d32f2f;
+  transform: scale(1.1);
+}
+
+.questionText {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* ============================
+   Formulário de nova pergunta
+================================*/
+
+.questionForm {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 18px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease;
+}
+
+.questionForm h3 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.quizWarning {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 12px;
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.quizWarning p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quizWarning p:before {
+  content: "⚠️";
+  font-size: 1.2rem;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
 }
 
 /* ============================
@@ -117,6 +371,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Cada caixa de opção */
@@ -127,58 +388,332 @@
   font-size: 1.2rem;
   font-weight: bold;
   text-align: center;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-/* Cores possíveis */
-.optionRed {
-  background-color: #cf3f52;
+.optionBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.optionPurple {
-  background-color: #6951a1;
+.optionContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.optionGreen {
-  background-color: #3fa09b;
+.correctBadge {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
-.optionBlue {
-  background-color: #1f2e7a;
+/* ============================
+   Formulário de edição
+================================*/
+
+.editForm {
+  padding: 20px 0;
+  border-top: 2px solid #f0f0f0;
+  margin-top: 10px;
+}
+
+.editForm h4 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.optionsContainer {
+  margin-bottom: 20px;
+}
+
+.optionsContainer h4 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.optionRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.optionInput {
+  flex: 1;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 2px solid #d7b3ad;
+  font-size: 1.1rem;
+  font-family: 'Inter', sans-serif;
+  border-left: 6px solid #ccc;
+  background-color: #ffece8;
+  transition: all 0.2s;
+}
+
+.optionInput:focus {
+  outline: none;
+  border-color: #b18b84;
+  transform: translateY(-1px);
+}
+
+.correctButton {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  min-width: 150px;
+  transition: all 0.2s;
+}
+
+.correctButton:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.removeButton {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeButton:hover {
+  background-color: #d32f2f;
+  transform: scale(1.1);
+}
+
+/* ============================
+   Botões de ação da edição
+================================*/
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.cancelButton {
+  background-color: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.cancelButton:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.saveButton {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.saveButton:hover:not(:disabled) {
+  background-color: #3d8b40;
+  transform: translateY(-2px);
+}
+
+.saveButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 /* ============================
    Botão de múltipla escolha
 ================================*/
 
+.modeContainer {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .modeBadge {
-  padding: 8px 14px;
+  padding: 8px 16px;
   background-color: #644dc4;
   color: white;
   border-radius: 12px;
-  font-size: 1rem;
-  float: right;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: inline-block;
 }
 
 /* ============================
-   Accordion das perguntas vazias
+   Adicionar pergunta
 ================================*/
 
-.emptyQuestion {
-  background-color: #efb4a7;
-  padding: 14px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-  cursor: pointer;
+.addQuestionSection {
+  text-align: center;
+  margin-top: 30px;
+  animation: fadeIn 0.5s ease;
 }
+
+.addQuestionButton {
+  background-color: white;
+  border: 2px dashed #d7b3ad;
+  border-radius: 20px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+
+.addQuestionButton:hover {
+  background-color: #ffe7e2;
+  border-color: #644dc4;
+  transform: scale(1.1);
+}
+
+.bigPlusIcon {
+  font-size: 2rem;
+  color: #d7b3ad;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.addQuestionButton:hover .bigPlusIcon {
+  color: #644dc4;
+}
+
+.addQuestionText {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ============================
+   Animações
+================================*/
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ============================
+   Responsividade geral
+================================*/
+
+@media (max-width: 768px) {
+  .content {
+    padding: 0 10px;
+  }
+  
+  .actionsRow {
+    flex-wrap: wrap;
+  }
+  
+  .optionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .correctButton {
+    width: 100%;
+  }
+  
+  .editActions {
+    flex-direction: column;
+  }
+  
+  .editActions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 20px 10px;
+  }
+  
+  .formGroup {
+    margin-bottom: 20px;
+  }
+  
+  .label {
+    font-size: 1.2rem;
+  }
+  
+  .input {
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
+  
+  .quizActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .quizId {
+    text-align: center;
+    justify-content: center;
+  }
+  
+  .questionHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .questionActions {
+    align-self: flex-end;
   }
 }

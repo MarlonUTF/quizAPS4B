@@ -1,22 +1,65 @@
 import Logo from '../../../public/logo.png'
 import styles from "./TelaLoginAdm.module.css"
+import { useState } from 'react'
+import { supabase } from "../../supabaseClient"
 
-export default function TelaLoginAdm(){
-    return(
+export default function TelaLoginAdm() {
+
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
+
+    const login = async () => {
+        setLoading(true)
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        })
+
+        if (error) {
+            console.log("Erro ao fazer login:", error.message)
+            alert("Email ou senha incorretos.")
+            setLoading(false)
+            return
+        }
+
+        console.log("Usuário logado:", data)
+
+        window.location.href = "/dashboard" 
+    }
+
+    return (
         <div className={styles.page}>
-            <img src={Logo} alt="" width={100}/>
+            <img src={Logo} alt="logo" width={100} />
 
             <div className={styles.telaLoginAdm}>
                 <h1>Login</h1>
 
-                <div className={styles.form}> 
+                <div className={styles.form}>
                     <p>Email</p>
-                    <input type="text" className={styles.input} />
+                    <input
+                        type="text"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={styles.input}
+                    />
 
                     <p>Senha</p>
-                    <input type="number" className={styles.input} />
+                    <input
+                        type="password"
+                        className={styles.input}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
 
-                    <button className={styles.btn}>Entrar</button>
+                    <button
+                        className={styles.btn}
+                        onClick={login}
+                        disabled={loading}
+                    >
+                        {loading ? "Entrando..." : "Entrar"}
+                    </button>
 
                     <div className={styles.links}>
                         <a className={styles.link} href="">Esqueceu sua senha?</a>

@@ -1,4 +1,5 @@
 // CreateQuiz.jsx
+import Logo from '../../../public/logo.png';
 import { useState } from "react";
 import { supabase } from "../../supabaseClient";
 import styles from "./CreateQuiz.module.css";
@@ -290,10 +291,14 @@ export default function CreateQuiz() {
   };
 
   return (
-    <div className={styles.pageContainer}>
+    <div>
+      <header className={styles.header}></header>
+
+      <div className={styles.pageContainer}>
       <div className={styles.content}>
+        <img src={Logo} alt=""  height={100} width={100} />
         {/* Título */}
-        <h1 className={styles.title}>New sala</h1>
+        <h1 className={styles.newSala}>New sala</h1>
 
         {/* Input da Sala */}
         <div className={styles.formGroup}>
@@ -590,6 +595,8 @@ export default function CreateQuiz() {
           </>
         )}
       </div>
-    </div>
+    </div></div>
+
+    
   );
 }

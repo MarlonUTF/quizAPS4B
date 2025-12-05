@@ -1,15 +1,27 @@
 /* CreateQuiz.module.css */
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Road+Rage&display=swap');
+
+.header {
+  background-color: gray;
+  width: 100vw;
+  height: 6vh;
+
+}
+
+img{
+  margin-left: auto;  
+}
 
 .pageContainer {
   width: 100%;
   min-height: 100vh;
   background-color: #f8c7c0; /* rosa pastel */
-  padding: 40px 20px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 15px;
 }
 
 .content {
@@ -22,13 +34,14 @@
    Título
 ================================*/
 
-.title {
+.newSala {
   text-align: center;
-  font-size: 3rem;
+  font-size: 4rem;
+  font-family: "Road Rage", sans-serif;
   margin-bottom: 40px;
-  font-family: "Fredoka One", cursive;
   color: #000;
   letter-spacing: 1px;
+
 }
 
 @media (max-width: 768px) {

@@ -94,6 +94,7 @@
     gap: 1.5rem;
     padding: 1.5rem;
   }
+  
 
   .chartSection,
   .tableSection {
@@ -108,6 +109,7 @@
   .resultsWrapper {
     padding: 0.5rem;
   }
+
 
   .resultsContainer {
     flex-direction: column;
@@ -269,6 +271,8 @@
 
 /* Responsividade para o botão */
 @media (max-width: 768px) {
+
+  
   .backToHomeButton {
     bottom: 20px;
     right: 20px;
@@ -289,6 +293,7 @@
     font-size: 0.9rem;
     gap: 8px;
   }
+  
   
   .buttonIcon {
     font-size: 1rem;

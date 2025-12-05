@@ -1,8 +1,9 @@
 // CreateQuiz.jsx
 import Logo from '../../../public/logo.png';
-import { useState } from "react";
-import { supabase } from "../../supabaseClient";
-import styles from "./CreateQuiz.module.css";
+import Logo from '../../../public/logo.png'
+import styles from "./CriarConta.module.css"
+import { useState } from 'react'
+import { supabase } from "../../../supabaseClient"   
 
 export default function CreateQuiz() {
   const [quizName, setQuizName] = useState("");
@@ -35,17 +36,6 @@ export default function CreateQuiz() {
       })
       .select()
       .single();
-
-    if (error) {
-      console.error("Erro ao criar quiz:", error);
-      alert("Erro ao criar quiz: " + error.message);
-      return;
-    }
-
-    console.log("Quiz criado ID:", data.id);
-    setQuizId(data.id);
-    alert("Quiz criado com sucesso! ID: " + data.id);
-  };
 
   const marcarComoCorreta = (index, isEditing = false) => {
     if (isEditing) {
@@ -599,4 +589,54 @@ export default function CreateQuiz() {
 
     
   );
+        if (error) {
+            console.log("Erro:", error)
+        } else {
+            console.log("Cadastrado com sucesso:", data)
+            setProfileId(data[0].id)
+        }
+    }
+
+    return (
+        <div className={styles.page}>
+            <img src={Logo} alt="logo" width={100} />
+
+            <div className={styles.criarConta}>
+                <h1>Criar Conta</h1>
+
+                <div className={styles.form}>
+                    <p>Nome</p>
+                    <input
+                        type="text"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                    />
+
+                    <p>Email</p>
+                    <input
+                        type="text"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <p>Senha</p>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <button className={styles.btn} onClick={cadastro}>
+                        Criar
+                    </button>
+
+                    {profileId && (
+                        <p style={{ color: "white", marginTop: "10px" }}>
+                            Conta criada (ID: {profileId})
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
 }

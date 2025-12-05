@@ -36,35 +36,6 @@ export default function CreateQuiz() {
       })
       .select()
       .single();
-export default function CriarConta() {
-
-    const [nome, setNome] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [profileId, setProfileId] = useState(null)  
-
-    const cadastro = async () => {
-        const { data, error } = await supabase
-            .from("profiles")
-            .insert([
-                {
-                    user_name: nome,
-                    email: email,
-                    password: password,
-                }
-            ])
-            .select()  
-
-    if (error) {
-      console.error("Erro ao criar quiz:", error);
-      alert("Erro ao criar quiz: " + error.message);
-      return;
-    }
-
-    console.log("Quiz criado ID:", data.id);
-    setQuizId(data.id);
-    alert("Quiz criado com sucesso! ID: " + data.id);
-  };
 
   const marcarComoCorreta = (index, isEditing = false) => {
     if (isEditing) {

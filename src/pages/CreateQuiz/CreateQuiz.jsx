@@ -1,9 +1,7 @@
-// CreateQuiz.jsx
-import Logo from '../../../public/logo.png';
 import Logo from '../../../public/logo.png'
-import styles from "./CriarConta.module.css"
+import styles from "./CreateQuiz.module.css"
 import { useState } from 'react'
-import { supabase } from "../../../supabaseClient"   
+import { supabase } from "../../supabaseClient"   
 
 export default function CreateQuiz() {
   const [quizName, setQuizName] = useState("");

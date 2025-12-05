@@ -25,7 +25,6 @@ export default function CreateQuiz() {
 
   const criarQuiz = async () => {
     console.log("Criando quiz...");
-
     const { data, error } = await supabase
       .from("quiz")
       .insert({
@@ -34,6 +33,11 @@ export default function CreateQuiz() {
       })
       .select()
       .single();
+
+    console.log("Quiz criado ID:", data.id);
+    setQuizId(data.id);
+    alert("Quiz criado com sucesso! ID: " + data.id);
+  };
 
   const marcarComoCorreta = (index, isEditing = false) => {
     if (isEditing) {
@@ -50,7 +54,6 @@ export default function CreateQuiz() {
       setOptions(novas);
     }
   };
-
   const adicionarOpcao = (isEditing = false) => {
     if (isEditing) {
       if (editingOptions.length < 6) {
@@ -64,7 +67,6 @@ export default function CreateQuiz() {
       }
     }
   };
-
   const removerOpcao = (index, isEditing = false) => {
     if (isEditing) {
       if (editingOptions.length > 2) {
@@ -78,15 +80,12 @@ export default function CreateQuiz() {
       }
     }
   };
-
   const salvarPerguntaNoBanco = async () => {
     if (!quizId) {
       alert("Crie o quiz antes de salvar perguntas.");
       return;
     }
-
     console.log("Criando pergunta para quiz ID:", quizId);
-
     const { data: questionData, error: questionError } = await supabase
       .from("question")
       .insert({
@@ -94,48 +93,38 @@ export default function CreateQuiz() {
       })
       .select()
       .single();
-
     if (questionError) {
       console.error("Erro ao criar pergunta:", questionError);
       alert("Erro ao criar pergunta: " + questionError.message);
       return;
     }
-
     console.log("Pergunta criada ID:", questionData.id);
-
     const { error: pivotError } = await supabase
       .from("quiz_question")
       .insert({
         quiz_id: quizId,
         question_id: questionData.id,
       });
-
     if (pivotError) {
       console.error("Erro no pivot:", pivotError);
       alert("Erro ao vincular pergunta: " + pivotError.message);
       return;
     }
-
     console.log("Pivot criado", quizId, questionData.id);
-
     const payloadOptions = options.map((opt) => ({
       question_id: questionData.id,
       option_text: opt.option_text,
       is_correct: opt.is_correct,
     }));
-
     const { error: optionError } = await supabase
       .from("option")
       .insert(payloadOptions);
-
     if (optionError) {
       console.error("Erro ao salvar opções:", optionError);
       alert("Erro ao salvar opções: " + optionError.message);
       return;
     }
-
     console.log("Opções salvas com sucesso!");
-
     // Adicionar à lista de perguntas
     const novaPergunta = {
       id: questionData.id,
@@ -154,17 +143,14 @@ export default function CreateQuiz() {
     
     alert("Pergunta salva com sucesso!");
   };
-
   const abrirEdicaoPergunta = (index) => {
     const question = questions[index];
     setEditingQuestionIndex(index);
     setEditingQuestionText(question.text);
     setEditingOptions([...question.options]);
   };
-
   const salvarEdicaoPergunta = async () => {
     if (editingQuestionIndex === null) return;
-
     const question = questions[editingQuestionIndex];
     
     try {
@@ -173,30 +159,23 @@ export default function CreateQuiz() {
         .from("question")
         .update({ question_text: editingQuestionText })
         .eq("id", question.id);
-
       if (questionError) throw questionError;
-
       // Primeiro, remover todas as opções antigas
       const { error: deleteError } = await supabase
         .from("option")
         .delete()
         .eq("question_id", question.id);
-
       if (deleteError) throw deleteError;
-
       // Inserir novas opções
       const payloadOptions = editingOptions.map((opt) => ({
         question_id: question.id,
         option_text: opt.option_text,
         is_correct: opt.is_correct,
       }));
-
       const { error: insertError } = await supabase
         .from("option")
         .insert(payloadOptions);
-
       if (insertError) throw insertError;
-
       // Atualizar estado local
       const novasPerguntas = [...questions];
       novasPerguntas[editingQuestionIndex] = {
@@ -217,16 +196,13 @@ export default function CreateQuiz() {
       alert("Erro ao atualizar pergunta: " + error.message);
     }
   };
-
   const cancelarEdicao = () => {
     setEditingQuestionIndex(null);
     setEditingQuestionText("");
     setEditingOptions([]);
   };
-
   const excluirPergunta = async (index) => {
     if (!window.confirm("Tem certeza que deseja excluir esta pergunta?")) return;
-
     const question = questions[index];
     
     try {
@@ -235,23 +211,17 @@ export default function CreateQuiz() {
         .from("quiz_question")
         .delete()
         .eq("question_id", question.id);
-
       if (pivotError) throw pivotError;
-
       const { error: optionsError } = await supabase
         .from("option")
         .delete()
         .eq("question_id", question.id);
-
       if (optionsError) throw optionsError;
-
       const { error: questionError } = await supabase
         .from("question")
         .delete()
         .eq("id", question.id);
-
       if (questionError) throw questionError;
-
       // Atualizar estado local
       const novasPerguntas = questions.filter((_, i) => i !== index);
       setQuestions(novasPerguntas);
@@ -267,7 +237,6 @@ export default function CreateQuiz() {
       alert("Erro ao excluir pergunta: " + error.message);
     }
   };
-
   const adicionarNovaPergunta = () => {
     // Fechar qualquer edição em andamento
     if (editingQuestionIndex !== null) {
@@ -277,17 +246,14 @@ export default function CreateQuiz() {
     // Focar no formulário de nova pergunta
     document.getElementById("nova-pergunta-form")?.scrollIntoView({ behavior: "smooth" });
   };
-
   return (
     <div>
       <header className={styles.header}></header>
-
       <div className={styles.pageContainer}>
       <div className={styles.content}>
         <img src={Logo} alt=""  height={100} width={100} />
         {/* Título */}
         <h1 className={styles.newSala}>New sala</h1>
-
         {/* Input da Sala */}
         <div className={styles.formGroup}>
           <label className={styles.label}>Sala:</label>
@@ -299,7 +265,6 @@ export default function CreateQuiz() {
             onChange={(e) => setQuizName(e.target.value)}
           />
         </div>
-
         {/* Descrição */}
         <div className={styles.formGroup}>
           <label className={styles.label}>Descrição:</label>
@@ -311,7 +276,6 @@ export default function CreateQuiz() {
             rows="3"
           />
         </div>
-
         {/* Botão Criar Quiz */}
         <div className={styles.quizActions}>
           <button className={styles.primaryButton} onClick={criarQuiz}>
@@ -321,10 +285,8 @@ export default function CreateQuiz() {
             <span className={styles.quizId}>Quiz ID: {quizId}</span>
           )}
         </div>
-
         {/* Separador */}
         <div className={styles.separator}></div>
-
         {/* Formulário para Nova Pergunta - AGORA SEMPRE VISÍVEL */}
         <div id="nova-pergunta-form" className={styles.questionForm}>
           <h3>Adicionar Nova Pergunta</h3>
@@ -338,7 +300,6 @@ export default function CreateQuiz() {
               rows="3"
             />
           </div>
-
           <div className={styles.optionsContainer}>
             <h4>Opções:</h4>
             {options.map((opt, index) => (
@@ -355,7 +316,6 @@ export default function CreateQuiz() {
                   }}
                   style={{ borderLeftColor: opt.color }}
                 />
-
                 <button
                   onClick={() => marcarComoCorreta(index)}
                   className={styles.correctButton}
@@ -385,7 +345,6 @@ export default function CreateQuiz() {
               Adicionar opção
             </button>
           </div>
-
           <div className={styles.formActions}>
             <button 
               className={styles.primaryButton} 
@@ -402,7 +361,6 @@ export default function CreateQuiz() {
             </div>
           )}
         </div>
-
         {/* Ações das Perguntas - Só aparece se houver quiz criado */}
         {quizId && (
           <>
@@ -418,13 +376,11 @@ export default function CreateQuiz() {
               <button className={styles.actionBtn}>
                 Todas
               </button>
-
               <select className={styles.dropdown}>
                 <option value="banco">Banco</option>
                 <option value="outro">Outro</option>
               </select>
             </div>
-
             {/* Lista de Perguntas Salvas - Componentes Expandíveis */}
             {questions.map((question, index) => (
               <div 
@@ -469,7 +425,6 @@ export default function CreateQuiz() {
                         rows="3"
                       />
                     </div>
-
                     <div className={styles.optionsContainer}>
                       <h4>Opções:</h4>
                       {editingOptions.map((opt, optIndex) => (
@@ -486,7 +441,6 @@ export default function CreateQuiz() {
                             }}
                             style={{ borderLeftColor: opt.color }}
                           />
-
                           <button
                             onClick={() => marcarComoCorreta(optIndex, true)}
                             className={styles.correctButton}
@@ -516,7 +470,6 @@ export default function CreateQuiz() {
                         Adicionar opção
                       </button>
                     </div>
-
                     <div className={styles.editActions}>
                       <button 
                         className={styles.cancelButton}
@@ -554,7 +507,6 @@ export default function CreateQuiz() {
                         </div>
                       ))}
                     </div>
-
                     {/* Badge de Múltipla Escolha */}
                     <div className={styles.modeContainer}>
                       <span className={styles.modeBadge}>
@@ -565,7 +517,6 @@ export default function CreateQuiz() {
                 )}
               </div>
             ))}
-
             {/* Espaço para adicionar mais perguntas */}
             {questions.length > 0 && (
               <div className={styles.addQuestionSection}>
@@ -584,57 +535,7 @@ export default function CreateQuiz() {
         )}
       </div>
     </div></div>
-
     
   );
-        if (error) {
-            console.log("Erro:", error)
-        } else {
-            console.log("Cadastrado com sucesso:", data)
-            setProfileId(data[0].id)
-        }
     }
-
-    return (
-        <div className={styles.page}>
-            <img src={Logo} alt="logo" width={100} />
-
-            <div className={styles.criarConta}>
-                <h1>Criar Conta</h1>
-
-                <div className={styles.form}>
-                    <p>Nome</p>
-                    <input
-                        type="text"
-                        value={nome}
-                        onChange={(e) => setNome(e.target.value)}
-                    />
-
-                    <p>Email</p>
-                    <input
-                        type="text"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-
-                    <p>Senha</p>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-
-                    <button className={styles.btn} onClick={cadastro}>
-                        Criar
-                    </button>
-
-                    {profileId && (
-                        <p style={{ color: "white", marginTop: "10px" }}>
-                            Conta criada (ID: {profileId})
-                        </p>
-                    )}
-                </div>
-            </div>
-        </div>
-    )
-}
+   

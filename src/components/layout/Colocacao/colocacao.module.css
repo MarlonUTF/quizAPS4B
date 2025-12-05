@@ -91,7 +91,7 @@
   animation: rowAppear 0.5s ease-out forwards;
   opacity: 0;
   transform: translateX(-10px);
-  height: 42px;
+  height: 80px;
 }
 
 @keyframes rowAppear {
@@ -277,7 +277,7 @@
   }
   
   .tableRow {
-    height: 38px;
+    height: 80px;
   }
   
   .tableCell {

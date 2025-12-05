@@ -6,7 +6,9 @@ import TelaInicial from './pages/TelaInicial/TelaInicial.jsx'
 import CriarConta from './pages/CriarConta/CriarConta.jsx'
 import TelaLoginJogador from './pages/TelaLoginJogador/TelaLoginJogador.jsx';
 import TelaLoginAdm from "./pages/TelaLoginAdm/TelaLoginAdm.jsx";
-import FinalSessao from "./pages/FinalSessao/FinalSessao.jsx"
+import FinalSessao from "./pages/FinalSessao/FinalSessao.jsx";
+import GerenciamentoSessao from "./pages/GerenciamentoSessao/GerenciamentoSessao.jsx";
+import CreateQuiz from './pages/CreateQuiz/CreateQuiz.jsx'
 
 function App() {
   return (
@@ -16,10 +18,12 @@ function App() {
         <Route path="/sessao" element={<InicioSessao />} />
         <Route path="/inicio" element={<TelaInicial />} />
         <Route path="/criarconta" element={<CriarConta/>} />
-        <Route path="*" element={<NotFound />} />
         <Route path="/telaloginjogador" element={<TelaLoginJogador />} />
         <Route path="/telaloginadm" element={<TelaLoginAdm/>} />
         <Route path="/finalsessao" element={<FinalSessao/>} />
+        <Route path="/gerenciamentoSessao" element={<GerenciamentoSessao/>} />
+        <Route path="/criarquiz" element={<CreateQuiz/>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

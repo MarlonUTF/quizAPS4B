@@ -21,7 +21,7 @@ function App() {
         <Route path="/telaloginjogador" element={<TelaLoginJogador />} />
         <Route path="/telaloginadm" element={<TelaLoginAdm/>} />
         <Route path="/finalsessao" element={<FinalSessao/>} />
-        <Route path="/gerenciamentoSessao" element={<GerenciamentoSessao/>} />
+        <Route path="/gerenciamentosessao" element={<GerenciamentoSessao/>} />
         <Route path="/criarquiz" element={<CreateQuiz/>} />
         <Route path="*" element={<NotFound />} />
       </Routes>

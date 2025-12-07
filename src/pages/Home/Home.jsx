@@ -1,9 +1,17 @@
+import { useNavigate } from "react-router-dom"
 import Logo from '../../../public/logo.png';
 import ImgPlus from "../../../public/adicionar.png"
 import styles from "./Home.module.css"
 import Header from '../../components/layout/Header/Header'
 
 export default function Home() {
+
+    const navigate = useNavigate()
+
+    function handleCreateQuiz() {
+        navigate("/criarquiz")
+    }
+
     return (
         <div>
             <Header/>
@@ -13,11 +21,15 @@ export default function Home() {
                 <h1>Olá usuário!</h1>
 
                 <div className={styles.buttonsRow}>
+
                     <div className={styles.option}>
-                        <button className={styles.btnAdd}>
-                            <img  src={ImgPlus} alt="" width={60} height={60}/>
+                        <button 
+                            className={styles.btnAdd} 
+                            onClick={handleCreateQuiz}
+                        >
+                            <img src={ImgPlus} alt="" width={40} height={40}/>
                         </button>
-                        <p>Criar nova Sala</p>
+                        <p>Criar Quiz</p>
                     </div>
 
                     <div className={styles.option}>

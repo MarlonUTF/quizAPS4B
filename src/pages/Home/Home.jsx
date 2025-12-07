@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom"
 import Logo from '../../../public/logo.png';
 import ImgPlus from "../../../public/adicionar.png"
 import styles from "./Home.module.css"
+import Header from '../../components/layout/Header/Header'
 
 export default function Home() {
 
@@ -13,7 +14,7 @@ export default function Home() {
 
     return (
         <div>
-            <header className={styles.header}></header>
+            <Header/>
 
             <div className={styles.container}>
                 <img src={Logo} alt="" height={100} width={100} />

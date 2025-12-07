@@ -1,6 +1,7 @@
 import Logo from '../../../public/logo.png'
 import styles from "./CreateQuiz.module.css"
 import { useState } from 'react'
+import { useEffect } from "react"
 import { supabase } from "../../supabaseClient"   
 
 export default function CreateQuiz() {
@@ -19,6 +20,17 @@ export default function CreateQuiz() {
   const [editingOptions, setEditingOptions] = useState([]);
   
   const [questions, setQuestions] = useState([]);
+
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        setUserId(data.user.id);
+      }
+    });
+  }, []);
+
   
   // Cores das opções
   const optionColors = ["#cf3f52", "#6951a1", "#3fa09b", "#1f2e7a", "#FF9800", "#9C27B0"];
@@ -30,6 +42,7 @@ export default function CreateQuiz() {
       .insert({
         quiz_name: quizName,
         quiz_description: quizDescription,
+        created_by: userId,
       })
       .select()
       .single();

@@ -9,6 +9,7 @@ import TelaLoginAdm from "./pages/TelaLoginAdm/TelaLoginAdm.jsx";
 import FinalSessao from "./pages/FinalSessao/FinalSessao.jsx";
 import GerenciamentoSessao from "./pages/GerenciamentoSessao/GerenciamentoSessao.jsx";
 import CreateQuiz from './pages/CreateQuiz/CreateQuiz.jsx'
+import Pergunta from './pages/Pergunta/Pergunta.jsx'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/finalsessao" element={<FinalSessao/>} />
         <Route path="/gerenciamentosessao" element={<GerenciamentoSessao/>} />
         <Route path="/criarquiz" element={<CreateQuiz/>} />
+        <Route path="/pergunta" element={<Pergunta/>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

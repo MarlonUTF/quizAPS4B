@@ -42,3 +42,66 @@
     align-items: center;
     justify-content: center;
 }
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 70vh;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.codigoSala {
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+.contadorJogadores {
+    font-size: 1rem;
+    color: #888;
+    margin-top: 5px;
+}
+
+.semJogadores {
+    text-align: center;
+    color: #999;
+    font-size: 1.2rem;
+    padding: 40px;
+    grid-column: 1 / -1;
+}
+
+.aguardandoAdmin {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 500px;
+    color: #856404;
+}
+
+.aguardandoAdmin p {
+    margin: 10px 0;
+}
+
+.aguardandoAdmin p:first-child {
+    font-weight: bold;
+    font-size: 1.1rem;
+}

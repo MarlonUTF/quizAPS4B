@@ -1,23 +1,29 @@
 import "./TelaLoginJogador.css";
 import Logo from "../../../public/logo.png";
 import ReplayIcon from "@mui/icons-material/Replay";
-import { useState, useEffect } from "react";
-import { supabase } from "../../supabaseClient"; // <-- ADICIONADO
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useState, useEffect, useRef } from "react";
+import { supabase } from "../../supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 export default function TelaLoginJogador() {
   const [nome, setNome] = useState("");
   const [codigoSala, setCodigoSala] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // Estados para o sistema de emojis e cores
+  const [error, setError] = useState("");
+  const [showError, setShowError] = useState(false);
+  
   const [usedColors, setUsedColors] = useState([]);
   const [usedEmojis, setUsedEmojis] = useState([]);
   const [currentColor, setCurrentColor] = useState("");
   const [currentEmoji, setCurrentEmoji] = useState("");
-
-  // ============================
-  // LISTAS ORIGINAIS
-  // ============================
+  
+  const [shakeAnimation, setShakeAnimation] = useState(false);
+  
+  const navigate = useNavigate();
+  const nomeInputRef = useRef(null);
+  const codigoInputRef = useRef(null);
 
   const emojis = [
     "😀", "😁", "😆", "🤣", "😇", "😍", "🤩", "🥰", "😘",
@@ -33,23 +39,31 @@ export default function TelaLoginJogador() {
     "rgb(170, 255, 220)", "rgb(170, 200, 255)",
   ];
 
-  // ============================
-  // FUNÇÕES ORIGINAIS
-  // ============================
-
   const getUniqueIndex = (array, usedArray) => {
     if (usedArray.length >= array.length) {
       return Math.floor(Math.random() * array.length);
     }
 
     let index;
-    do index = Math.floor(Math.random() * array.length);
-    while (usedArray.includes(index));
+    do {
+      index = Math.floor(Math.random() * array.length);
+    } while (usedArray.includes(index));
 
     return index;
   };
 
-  const mudarEmojiECor = () => {
+  const mudarEmojiECor = (auto = false) => {
+    if (!auto) {
+      // Efeito de clique visual
+      const emojiElement = document.querySelector('.emoji');
+      if (emojiElement) {
+        emojiElement.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          emojiElement.style.transform = 'scale(1)';
+        }, 150);
+      }
+    }
+
     let localUsedColors = usedColors.length >= pastelColors.length ? [] : usedColors;
     let localUsedEmojis = usedEmojis.length >= emojis.length ? [] : usedEmojis;
 
@@ -67,171 +81,338 @@ export default function TelaLoginJogador() {
     );
   };
 
-  // ============================
-  // CORREÇÃO: VERIFICAR SE SESSÃO EXISTE (tabela session, não quiz)
-  // ============================
-  async function verificarSalaExiste() {
+  // Auto-mudar a cada 5 segundos se o usuário não interagir
+  useEffect(() => {
+    const interval = setInterval(() => {
+      mudarEmojiECor(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [usedColors, usedEmojis]);
+
+  const verificarSalaExiste = async () => {
     const { data, error } = await supabase
       .from("session")
-      .select("id")
-      .eq("code", codigoSala.toUpperCase()) // Usar coluna 'code' da tabela session
+      .select("id, status")
+      .eq("code", codigoSala.toUpperCase().trim())
       .single();
 
-    return { exists: !!data, sessionId: data?.id };
-  }
-
-  // ============================
-  // CORREÇÃO: CRIAR JOGADOR NA TABELA CORRETA (session_player)
-  // ============================
-  async function criarJogador(sessionId) {
-    const { data, error } = await supabase
-      .from("session_player")
-      .insert({
-        nickname: nome, // Campo correto: nickname
-        session_id: sessionId, // Campo correto: session_id
-        color: currentColor,
-        emoji: currentEmoji,
-        is_admin: false,
-        connected: true
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Erro ao criar jogador:", error);
-      alert("Erro ao criar jogador!");
-      return null;
+    if (error || !data) {
+      return { exists: false, sessionId: null, status: null };
     }
 
-    return data;
-  }
+    return { exists: true, sessionId: data.id, status: data.status };
+  };
 
-  // ============================
-  // NOVO: SALVAR LOCALMENTE
-  // ============================
-  function salvarLocal(player, sessionCode) {
-    localStorage.setItem("quiz-player", JSON.stringify({
-      ...player,
-      room_code: sessionCode // Manter código da sala para referência
-    }));
-  }
+  const criarJogador = async (sessionId) => {
+    try {
+      const { data, error } = await supabase
+        .from("session_player")
+        .insert({
+          nickname: nome.trim(),
+          session_id: sessionId,
+          color: currentColor,
+          emoji: currentEmoji,
+          is_admin: false,
+          connected: true,
+        })
+        .select()
+        .single();
 
-  // ============================
-  // NOVO: CARREGAR LOCALMENTE
-  // ============================
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Erro ao criar jogador:", error);
+      setError("Erro ao entrar na sala. Tente novamente.");
+      setShowError(true);
+      return null;
+    }
+  };
+
+  const salvarLocal = (player, sessionCode) => {
+    localStorage.setItem(
+      "quiz-player",
+      JSON.stringify({
+        ...player,
+        room_code: sessionCode,
+        last_login: new Date().toISOString()
+      })
+    );
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("quiz-player");
     if (saved) {
-      const p = JSON.parse(saved);
-      setNome(p.nickname || "");
-      setCodigoSala(p.room_code || "");
-      setCurrentColor(p.color || "");
-      setCurrentEmoji(p.emoji || "");
+      try {
+        const p = JSON.parse(saved);
+        setNome(p.nickname || "");
+        setCodigoSala(p.room_code || "");
+        setCurrentColor(p.color || "");
+        setCurrentEmoji(p.emoji || "");
+        
+        // Focar no input de código se já tiver nome
+        if (p.nickname && codigoInputRef.current) {
+          setTimeout(() => codigoInputRef.current.focus(), 100);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar dados salvos:", e);
+      }
+    } else {
+      mudarEmojiECor(true);
     }
   }, []);
 
-  // ============================
-  // BOTÃO ENTRAR (COM LOGÍSTICA REAL)
-  // ============================
   const handleEntrar = async () => {
-    if (!nome.trim() || !codigoSala.trim()) {
-      alert("Por favor, preencha todos os campos!");
+    // Reset error states
+    setError("");
+    setShowError(false);
+    
+    // Validações
+    if (!nome.trim()) {
+      setError("Por favor, digite seu nome");
+      setShowError(true);
+      nomeInputRef.current?.focus();
+      triggerShake();
+      return;
+    }
+    
+    if (!codigoSala.trim()) {
+      setError("Por favor, digite o código da sala");
+      setShowError(true);
+      codigoInputRef.current?.focus();
+      triggerShake();
+      return;
+    }
+
+    // Validação adicional do código
+    const cleanCode = codigoSala.toUpperCase().trim();
+    if (cleanCode.length < 3 || cleanCode.length > 10) {
+      setError("Código da sala deve ter entre 3 e 10 caracteres");
+      setShowError(true);
+      triggerShake();
       return;
     }
 
     setIsLoading(true);
 
-    // 1 — Verificar se sessão existe
-    const { exists, sessionId } = await verificarSalaExiste();
-    if (!exists) {
+    try {
+      // Verificar sala
+      const { exists, sessionId, status } = await verificarSalaExiste();
+      
+      if (!exists) {
+        setError("❌ Sala não encontrada! Verifique o código.");
+        setShowError(true);
+        triggerShake();
+        return;
+      }
+      
+      // Verificar status da sala
+      if (status && status !== 'pending') {
+        setError(`A sala já está ${status === 'in_progress' ? 'em andamento' : 'finalizada'}`);
+        setShowError(true);
+        return;
+      }
+
+      // Criar jogador
+      const jogadorCriado = await criarJogador(sessionId);
+      if (!jogadorCriado) return;
+
+      // Salvar localmente
+      salvarLocal(jogadorCriado, cleanCode);
+
+      // Pequeno delay para feedback visual
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Redirecionar
+      navigate(`/sessao?session=${sessionId}&player=${jogadorCriado.id}`);
+      
+    } catch (err) {
+      console.error("Erro no login:", err);
+      setError("Ocorreu um erro inesperado. Tente novamente.");
+      setShowError(true);
+    } finally {
       setIsLoading(false);
-      alert("❌ Sala não encontrada! Verifique o código.");
-      return;
     }
-
-    // 2 — Criar jogador na sessão
-    const jogadorCriado = await criarJogador(sessionId);
-    if (!jogadorCriado) {
-      setIsLoading(false);
-      return;
-    }
-
-    // 3 — Salvar local
-    salvarLocal(jogadorCriado, codigoSala.toUpperCase());
-
-    setIsLoading(false);
-
-    // 4 — Redirecionar
-    window.location.href = `/espera-jogador?session=${sessionId}&player=${jogadorCriado.id}`;
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") handleEntrar();
+    if (e.key === 'Enter') {
+      handleEntrar();
+    }
+    // Limpa erro ao começar a digitar
+    if (showError) {
+      setShowError(false);
+      setError("");
+    }
   };
 
-  useEffect(() => {
-    mudarEmojiECor();
-  }, []);
+  const triggerShake = () => {
+    setShakeAnimation(true);
+    setTimeout(() => setShakeAnimation(false), 500);
+  };
 
-  function ajustarCor(rgb, brilho = 0.85, opacidade = 0.65) {
-    const [r, g, b] = rgb.match(/\d+/g).map(Number);
-    return `rgba(${r * brilho}, ${g * brilho}, ${b * brilho}, ${opacidade})`;
-  }
+  const handleLogoClick = () => {
+    // Reseta tudo e gera nova combinação
+    setNome("");
+    setCodigoSala("");
+    setError("");
+    setShowError(false);
+    mudarEmojiECor(false);
+    
+    if (nomeInputRef.current) {
+      nomeInputRef.current.focus();
+    }
+  };
 
-  // ============================
-  // RETORNO ORIGINAL (COM PEQUENOS AJUSTES)
-  // ============================
+  const isFormValid = nome.trim() && codigoSala.trim();
+
   return (
     <div className="telaLoginJogador">
-      <img src={Logo} alt="" className="logo" height={100} width={100} />
+      <img 
+        src={Logo} 
+        alt="Quiz Logo" 
+        className="logo" 
+        onClick={handleLogoClick}
+        title="Clique para resetar"
+      />
+      
       <div className="container">
         <div className="login">
-          <h1>Login</h1>
+          <div className="header">
+            <h1>Entrar no Quiz</h1>
+            <p className="subtitle">
+              Escolha sua identidade e entre na sala com o código
+            </p>
+          </div>
 
-          <div className="inputBox">
+          {/* Mensagem de erro */}
+          {showError && (
+            <div className="error-message" style={{
+              background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
+              color: 'white',
+              padding: '1rem 1.5rem',
+              borderRadius: '12px',
+              marginBottom: '1rem',
+              animation: 'fadeIn 0.3s ease-out',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
+            }}>
+              {error}
+            </div>
+          )}
+
+          <div className={`inputBox ${shakeAnimation ? 'shake' : ''}`}>
             <div
               className="emoji"
-              style={{ backgroundColor: currentColor }}
-              onClick={mudarEmojiECor}
+              style={{ 
+                backgroundColor: currentColor,
+                background: `linear-gradient(135deg, ${currentColor} 0%, ${currentColor.replace('rgb', 'rgba').replace(')', ', 0.8)')} 100%)`
+              }}
+              onClick={() => mudarEmojiECor(false)}
+              title="Clique para mudar"
             >
               {currentEmoji}
             </div>
 
             <input
+              ref={nomeInputRef}
               type="text"
-              placeholder="Nome"
+              placeholder="Seu nome"
               value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              onChange={(e) => {
+                setNome(e.target.value);
+                if (showError) setShowError(false);
+              }}
               onKeyPress={handleKeyPress}
               className="inputNome"
-              maxLength={50}
+              maxLength={20}
+              autoFocus
             />
 
-            <div className="mudar" onClick={mudarEmojiECor}>
-              <ReplayIcon style={{ color: "#FFFFFF" }} />
-            </div>
+            <button 
+              className="mudar"
+              onClick={() => mudarEmojiECor(false)}
+              aria-label="Mudar emoji e cor"
+            >
+              <ShuffleIcon style={{ color: "#FFFFFF", fontSize: '1.2rem' }} />
+            </button>
           </div>
 
           <div className="inputBox">
             <input
+              ref={codigoInputRef}
               className="codigoSala"
               type="text"
               placeholder="Código da sala"
               value={codigoSala}
-              onChange={(e) => setCodigoSala(e.target.value.toUpperCase())} // Converter para maiúsculas
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                setCodigoSala(value);
+                if (showError) setShowError(false);
+              }}
               onKeyPress={handleKeyPress}
-              maxLength={6}
+              maxLength={10}
             />
 
             <button
-              className={`buttonEntrar ${isLoading ? "loading" : ""}`}
+              className={`buttonEntrar ${isLoading ? 'loading' : ''} ${!isFormValid ? 'disabled' : ''}`}
               onClick={handleEntrar}
-              disabled={isLoading}
+              disabled={isLoading || !isFormValid}
+              style={{
+                opacity: isFormValid ? 1 : 0.7,
+                cursor: isFormValid ? 'pointer' : 'not-allowed'
+              }}
             >
-              {isLoading ? <div className="spinner"></div> : "Entrar"}
+              {isLoading ? (
+                <>
+                  <div className="spinner"></div>
+                  Entrando...
+                </>
+              ) : (
+                <>
+                  Entrar na Sala
+                  <ArrowForwardIcon style={{ fontSize: '1.2rem' }} />
+                </>
+              )}
             </button>
           </div>
 
+          <div className="instructions" style={{
+            marginTop: '2rem',
+            textAlign: 'center',
+            color: '#666',
+            fontSize: '0.9rem',
+            maxWidth: '400px',
+            lineHeight: '1.5'
+          }}>
+            <p>✨ <strong>Dica:</strong> O código da sala é fornecido pelo host do quiz</p>
+            <p style={{ marginTop: '0.5rem', opacity: 0.7 }}>
+              Pressione Enter para entrar rapidamente
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Decoração de fundo adicional */}
+      <div style={{
+        position: 'absolute',
+        bottom: '2rem',
+        right: '2rem',
+        color: 'rgba(255, 255, 255, 0.1)',
+        fontSize: '0.8rem',
+        textAlign: 'right',
+        zIndex: 1
+      }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #6565ac, #258a83)',
+            opacity: 0.1
+          }}></div>
+          <div>Quiz Experience v1.0</div>
         </div>
       </div>
     </div>

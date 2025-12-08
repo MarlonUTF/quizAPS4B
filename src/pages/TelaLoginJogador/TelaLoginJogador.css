@@ -1,107 +1,471 @@
-.telaLoginJogador{
-    background-color: #171738;
-    width:100%;  
-    height: 100%;
+.telaLoginJogador {
+    background: linear-gradient(135deg, #171738 0%, #0c0c2c 100%);
+    width: 100%;
     min-height: 100vh;
-
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
 }
 
-.container{
+/* Partículas animadas de fundo */
+.telaLoginJogador::before {
+    content: '';
+    position: absolute;
     width: 100%;
     height: 100%;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(101, 101, 172, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(219, 84, 97, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 50% 50%, rgba(37, 138, 131, 0.1) 0%, transparent 20%);
+    animation: float 20s ease-in-out infinite;
+}
 
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, -30px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2rem;
+    z-index: 2;
 }
 
-.logo{
-    width: 10rem;
+.logo {
+    width: 120px;
     height: auto;
-    position: absolute;
-    left: 5rem;
-    top: 5rem;
-    transform: translateX(-20%);
-    transform: translateY(-20%);
+    position: fixed;
+    left: 3rem;
+    top: 3rem;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease, filter 0.3s ease;
+    cursor: pointer;
 }
 
-.login{
+.logo:hover {
+    transform: scale(1.05) rotate(-5deg);
+    filter: drop-shadow(0 6px 12px rgba(101, 101, 172, 0.4));
+}
+
+.login {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 3rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     gap: 2rem;
-}
-
-.telaLoginJogador input{
-    background-color: rgba(255, 254, 254, 0.41);
-    border-radius: 10px;
-    border: 2px solid white;
-    padding: 10px;
-    text-align: center;
-    color: #171738;  
-}
-
-input{
     width: 100%;
-    box-shadow: 0 0 0 0;
-    border: 0 none;
-    outline: 0;
-
-    color: #171738;
-    font-size: 1.3rem;
-    font-weight: 450;
+    max-width: 480px;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: translateY(0);
+    animation: slideUp 0.6s ease-out;
 }
 
-input::placeholder{
-    color: #171738;
-    font-size: 1.3rem;
-    font-weight: 450;
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.inputBox{
-    width: 20.625rem;
+.login h1 {
+    color: #171738;
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #6565ac 0%, #258a83 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+}
+
+.login .subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+.inputBox {
+    width: 100%;
     display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.emoji {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.emoji::after {
+    content: '🔄';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.emoji:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.emoji:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+}
+
+.emoji:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+
+.inputNome, .codigoSala {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    padding: 1.2rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #171738;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.inputNome:focus, .codigoSala:focus {
+    outline: none;
+    border-color: #6565ac;
+    box-shadow: 
+        0 0 0 3px rgba(101, 101, 172, 0.15),
+        inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+.inputNome::placeholder, .codigoSala::placeholder {
+    color: #999;
+    font-weight: 400;
+}
+
+.mudar {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #258a83 0%, #1a6d67 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 138, 131, 0.3);
+}
+
+.mudar:hover {
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 6px 20px rgba(37, 138, 131, 0.4);
+    background: linear-gradient(135deg, #1a6d67 0%, #258a83 100%);
+}
+
+.mudar:active {
+    transform: translateY(0) rotate(90deg);
+}
+
+.mudar svg {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.buttonEntrar {
+    background: linear-gradient(135deg, #db5461 0%, #c44552 100%);
+    border-radius: 12px;
+    border: none;
+    padding: 1.2rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(219, 84, 97, 0.3);
+    min-width: 120px;
+    display: flex;
+    align-items: center;
     justify-content: center;
     gap: 0.5rem;
 }
 
-h1{
-    color: #6565ac;
-    font-size: 3.5rem;
-    font-weight: bold;
-   
-}
-.buttonEntrar{
-    background-color: #db5461;
-    border-radius: 10px;
-    border: 2px solid white;
-    padding: 1rem;
-    
-    font-size: 1.3rem;
-    font-weight: 450;
+.buttonEntrar:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(219, 84, 97, 0.4);
+    background: linear-gradient(135deg, #c44552 0%, #db5461 100%);
 }
 
-img {
-    padding: 10px;
+.buttonEntrar:active:not(:disabled) {
+    transform: translateY(-1px);
 }
 
-.mudar{
-    background-color:#258a83;
-    border-radius: 10px;
-    border: 2px solid white;
-    padding: 1rem;
+.buttonEntrar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
-.emoji{
-    background-color: rgba(255, 254, 254, 0.41);
+/* Spinner moderno */
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
     border-radius: 50%;
-    padding: 0.4rem;
-    font-size: 2rem;
-    align-self: center;
-    height: auto;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animação de erro para inputs */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Código de sala com estilo especial */
+.codigoSala {
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+/* Tooltip para o ícone de mudar */
+.mudar::after {
+    content: 'Trocar emoji/cor';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.mudar:hover::after {
+    opacity: 1;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .logo {
+        position: relative;
+        left: auto;
+        top: auto;
+        margin-bottom: 2rem;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+    
+    .login {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+    
+    .inputBox {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .emoji, .mudar, .buttonEntrar {
+        width: 100%;
+    }
+    
+    .mudar {
+        height: 60px;
+    }
+    
+    .buttonEntrar {
+        margin-top: 1rem;
+    }
+}
+
+/* Animações de entrada para elementos */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.inputBox {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+}
+
+.inputBox:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* Indicador de foco ativo */
+.inputNome:focus + .focus-indicator,
+.codigoSala:focus + .focus-indicator {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+/* Adicione ao final do arquivo CSS */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .login {
+    padding: 2rem 1.5rem !important;
+    margin: 1rem;
+    border-radius: 20px;
+  }
+  
+  .login h1 {
+    font-size: 2.2rem;
+  }
+  
+  .inputBox {
+    flex-direction: column;
+  }
+  
+  .emoji {
+    width: 80px;
+    height: 80px;
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .inputNome, .codigoSala {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+  
+  .buttonEntrar {
+    width: 100%;
+    margin-top: 1rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .logo {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin: 2rem auto;
+    width: 100px;
+  }
+  
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .login {
+    padding: 1.5rem 1rem !important;
+    gap: 1.5rem;
+  }
+  
+  .login h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem !important;
+  }
+}
+
+/* Animações adicionais */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.loading-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Placeholder animado */
+@keyframes placeholderShimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+.inputNome.loading::placeholder,
+.codigoSala.loading::placeholder {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: placeholderShimmer 2s infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Gradiente animado no botão */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.buttonEntrar:not(.disabled):not(.loading) {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
 }

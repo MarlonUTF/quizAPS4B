@@ -4,104 +4,178 @@
     align-items: center;
 
     width: 100vw;
-    height: 100vh;
+    min-height: 100vh;
 
-    background-color: #593C8F;
+    background: linear-gradient(180deg, #4E2F87 0%, #2F1D52 100%);
+    padding-bottom: 50px;
 }
 
+/* Título + logo */
 .titulo {
     display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 20px;
 
-    color: #BEBEED;
-    font-size: xx-large;
-    font-weight: bolder;
+    width: 100%;
+    padding: 25px 0;
 
-    width: 100vw;
-    height: 20vh;
+    margin-top: 6vh;
+    color: #CFCFFF;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 
 .logo {
-    width: 100px;
+    width: 150px;
     height: auto;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.45));
+    animation: float 3.2s ease-in-out infinite;
 }
 
-.textoTitulo {
-    position: absolute;
-    left: 10%;
-    align-self: flex-end;
-}
-
-.jogadores{
-    display: flex;
-    max-width: 80vw;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-}
-
-.loadingContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 70vh;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes float {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-7px); }
+    100% { transform: translateY(0); }
 }
 
 .codigoSala {
-    font-size: 1.2rem;
-    color: #666;
-    margin-top: 5px;
+    font-size: 1.35rem;
+    font-weight: bold;
+    text-align: center;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
 }
 
 .contadorJogadores {
-    font-size: 1rem;
-    color: #888;
-    margin-top: 5px;
+    font-size: 1.05rem;
+    text-align: center;
+    color: #e0e0ff;
 }
 
+
+/* Lista de jogadores */
+.jogadores {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+
+    width: 70%;
+    margin-top: 25px;
+    animation: fade-in 0.4s ease;
+}
+
+.jogadores > * {
+    animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Sem jogadores */
 .semJogadores {
+    width: 100%;
     text-align: center;
-    color: #999;
-    font-size: 1.2rem;
-    padding: 40px;
-    grid-column: 1 / -1;
+    color: #D9D9FF;
+    font-size: 1.25rem;
+    padding: 45px 0;
+    opacity: 0.85;
 }
 
-.aguardandoAdmin {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 10px;
-    padding: 20px;
+
+/* Loading */
+.loadingContainer {
+    margin-top: 11vh;
     text-align: center;
-    margin: 20px auto;
-    max-width: 500px;
-    color: #856404;
+    color: white;
+}
+
+.spinner {
+    width: 58px;
+    height: 58px;
+    border: 5px solid rgba(255,255,255,0.25);
+    border-top-color: #CFCFFF;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin-bottom: 18px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Caixa Aguardando Admin */
+.aguardandoAdmin {
+    background: rgba(255, 255, 255, 0.14);
+    border: 2px solid rgba(220, 210, 255, 0.4);
+    border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+    margin-top: 25px;
+
+    width: 92%;
+    max-width: 480px;
+
+    color: #F2EDFF;
+    font-weight: bold;
+
+    box-shadow: 0 6px 22px rgba(0,0,0,0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    animation: fade-in 0.4s ease;
 }
 
 .aguardandoAdmin p {
-    margin: 10px 0;
+    margin: 6px 0;
 }
 
-.aguardandoAdmin p:first-child {
-    font-weight: bold;
-    font-size: 1.1rem;
+
+/* Caixa Código da Sala */
+.codigoSalaBox {
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(190, 190, 255, 0.45);
+    border-radius: 20px;
+
+    padding: 18px 28px;
+    margin-top: 25px;
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    animation: fade-in 0.5s ease, up 0.4s ease;
+}
+
+@keyframes up {
+    from { transform: translateY(10px); }
+    to { transform: translateY(0); }
+}
+
+.codigoSalaBox strong {
+    font-size: 2.2rem;
+    letter-spacing: 4px;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.35);
+}
+
+.codigoSalaBox p {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #E9E6FF;
+}
+
+/* Fade */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }

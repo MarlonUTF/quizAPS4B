@@ -4,61 +4,87 @@
     align-items: center;
 
     width: 100vw;
-    height: 100vh;
+    min-height: 100vh;
 
-    background-color: #593C8F;
+    background: linear-gradient(180deg, #593C8F 0%, #462D70 100%);
 }
 
+/* Título + logo */
 .titulo {
     display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 20px;
 
+    width: 100%;
+    padding: 20px 0;
+
+    margin-top: 5vh;
     color: #BEBEED;
-    font-size: xx-large;
-    font-weight: bolder;
-
-    width: 100vw;
-    height: 20vh;
 }
 
+/* logo centralizada e leve animação */
 .logo {
-    width: 100px;
+    width: 160px;
     height: auto;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.4));
+    animation: float 3s ease-in-out infinite;
 }
 
-.textoTitulo {
-    position: absolute;
-    left: 10%;
-    align-self: flex-end;
+@keyframes float {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
 }
 
-.jogadores{
+.codigoSala {
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-align: center;
+    color: #ffffff;
+}
+
+.contadorJogadores {
+    font-size: 1rem;
+    text-align: center;
+    color: #e8e8ff;
+}
+
+/* lista de jogadores */
+.jogadores {
     display: flex;
-    max-width: 80vw;
     flex-wrap: wrap;
-    align-items: center;
     justify-content: center;
+    gap: 18px;
+
+    width: 80%;
+    margin-top: 20px;
 }
 
+/* Sem jogadores */
+.semJogadores {
+    width: 100%;
+    text-align: center;
+    color: #DDD;
+    font-size: 1.2rem;
+    padding: 40px 0;
+}
+
+/* Loading */
 .loadingContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 70vh;
+    margin-top: 10vh;
+    text-align: center;
+    color: white;
 }
 
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
+    width: 55px;
+    height: 55px;
+    border: 5px solid rgba(255,255,255,0.3);
+    border-top-color: #BEBEED;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 @keyframes spin {
@@ -66,42 +92,61 @@
     100% { transform: rotate(360deg); }
 }
 
-.codigoSala {
-    font-size: 1.2rem;
-    color: #666;
-    margin-top: 5px;
-}
-
-.contadorJogadores {
-    font-size: 1rem;
-    color: #888;
-    margin-top: 5px;
-}
-
-.semJogadores {
-    text-align: center;
-    color: #999;
-    font-size: 1.2rem;
-    padding: 40px;
-    grid-column: 1 / -1;
-}
-
+/* Caixa "Aguardando admin" */
 .aguardandoAdmin {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 2px solid #BEBEED;
+    border-radius: 14px;
     padding: 20px;
     text-align: center;
-    margin: 20px auto;
-    max-width: 500px;
-    color: #856404;
+    margin-top: 20px;
+
+    width: 90%;
+    max-width: 480px;
+
+    color: #593C8F;
+    font-weight: bold;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
 .aguardandoAdmin p {
-    margin: 10px 0;
+    margin: 6px 0;
 }
 
-.aguardandoAdmin p:first-child {
-    font-weight: bold;
-    font-size: 1.1rem;
+.codigoSalaBox {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid #BEBEED;
+    border-radius: 14px;
+    padding: 15px 25px;
+
+    margin-top: 20px;
+
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    animation: fade-in 0.5s ease;
+}
+
+.codigoSalaBox strong {
+    font-size: 2rem;
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(0,0,0,0.3);
+}
+
+.codigoSalaBox p {
+    margin: 0;
+    font-size: 1rem;
+    color: #e6e6ff;
+}
+
+/* animação */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }

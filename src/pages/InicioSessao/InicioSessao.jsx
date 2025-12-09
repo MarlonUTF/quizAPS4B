@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { supabase } from '../../supabaseClient'; // Ajuste o caminho conforme necessário
+import { supabase } from '../../supabaseClient';
 import style from './inicioSessao.module.css';
 
 import Header from '../../components/layout/Header/Header.jsx';
@@ -18,11 +18,10 @@ export default function InicioSessao() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Obter parâmetros da URL
     const sessionId = searchParams.get('session');
     const playerId = searchParams.get('player');
 
-    // 🔹 CARREGAR INFORMAÇÕES DO JOGADOR
+    // 🔹 PEGAR PLAYER DO LOCALSTORAGE
     useEffect(() => {
         const savedPlayer = localStorage.getItem('quiz-player');
         if (savedPlayer) {
@@ -32,7 +31,7 @@ export default function InicioSessao() {
         }
     }, []);
 
-    // 🔹 BUSCAR DADOS DA SESSÃO
+    // 🔹 CARREGAR DADOS DA SESSÃO
     useEffect(() => {
         if (!sessionId) return;
 
@@ -54,14 +53,13 @@ export default function InicioSessao() {
         carregarSessao();
     }, [sessionId]);
 
-    // 🔹 BUSCAR JOGADORES DA SESSÃO EM TEMPO REAL
+    // 🔹 CARREGAR JOGADORES + TEMPO REAL
     useEffect(() => {
         if (!sessionId) return;
 
         async function carregarJogadores() {
             setIsLoading(true);
-            
-            // Busca inicial
+
             const { data, error } = await supabase
                 .from('session_player')
                 .select('*')
@@ -69,83 +67,65 @@ export default function InicioSessao() {
                 .eq('connected', true)
                 .order('created_at', { ascending: true });
 
-            if (error) {
-                console.error('Erro ao carregar jogadores:', error);
-                return;
-            }
-
-            setJogadores(data);
+            if (!error) setJogadores(data);
             setIsLoading(false);
         }
 
-        // Carregar inicialmente
         carregarJogadores();
 
-        // 🔹 SUBSCRIÇÃO EM TEMPO REAL PARA NOVOS JOGADORES
         const channel = supabase
             .channel(`session-${sessionId}-players`)
             .on(
                 'postgres_changes',
                 {
-                    event: '*', // INSERT, UPDATE, DELETE
+                    event: '*',
                     schema: 'public',
                     table: 'session_player',
                     filter: `session_id=eq.${sessionId}`
                 },
                 (payload) => {
-                    console.log('Mudança detectada:', payload);
-                    
-                    // Atualizar lista de jogadores
                     if (payload.eventType === 'INSERT') {
                         setJogadores(prev => [...prev, payload.new]);
-                    } 
+                    }
                     else if (payload.eventType === 'UPDATE') {
-                        setJogadores(prev => 
-                            prev.map(jogador => 
-                                jogador.id === payload.new.id ? payload.new : jogador
-                            )
+                        setJogadores(prev =>
+                            prev.map(j => j.id === payload.new.id ? payload.new : j)
                         );
                     }
                     else if (payload.eventType === 'DELETE') {
-                        setJogadores(prev => 
-                            prev.filter(jogador => jogador.id !== payload.old.id)
+                        setJogadores(prev =>
+                            prev.filter(j => j.id !== payload.old.id)
                         );
                     }
                 }
             )
             .subscribe();
 
-        // Limpar subscription ao desmontar
-        return () => {
-            supabase.removeChannel(channel);
-        };
+        return () => supabase.removeChannel(channel);
     }, [sessionId]);
 
-    // 🔹 VERIFICAR SE JOGADOR ESTÁ CONECTADO
+    // 🔹 INDICAR QUE O PLAYER ESTÁ ONLINE
     useEffect(() => {
         if (!playerId || !sessionId) return;
 
-        // Atualizar status do jogador como conectado
         async function manterConexao() {
             await supabase
                 .from('session_player')
                 .update({ connected: true })
                 .eq('id', playerId);
 
-            // Atualizar periodicamente para mostrar que está online
             const interval = setInterval(async () => {
                 await supabase
                     .from('session_player')
                     .update({ connected: true })
                     .eq('id', playerId);
-            }, 30000); // A cada 30 segundos
+            }, 30000);
 
             return () => clearInterval(interval);
         }
 
         manterConexao();
 
-        // Marcar como desconectado ao sair da página
         return async () => {
             await supabase
                 .from('session_player')
@@ -154,39 +134,31 @@ export default function InicioSessao() {
         };
     }, [playerId, sessionId]);
 
-    // 🔹 INICIAR JOGO (apenas admin)
+    // 🔹 ADMIN: INICIAR JOGO
     const handleIniciarJogo = async () => {
-        if (!isAdmin) {
-            alert('Apenas o administrador pode iniciar o jogo!');
-            return;
-        }
+        if (!isAdmin) return alert('Apenas o administrador pode iniciar o jogo!');
 
-        // Atualizar status da sessão para "em andamento"
         const { error } = await supabase
             .from('session')
-            .update({ 
+            .update({
                 status: 'in_progress',
-                current_order: 1 // Primeira pergunta
+                current_order: 1
             })
             .eq('id', sessionId);
 
         if (error) {
-            console.error('Erro ao iniciar jogo:', error);
             alert('Erro ao iniciar jogo');
             return;
         }
 
         setJogoIniciado(true);
-        
-        // Redirecionar para a primeira pergunta
         window.location.href = `/quiz?sessao=${sessionId}&pergunta=1`;
     };
 
-    // 🔹 VERIFICAR SE ADMIN INICIOU O JOGO (para redirecionar todos)
+    // 🔹 REDIRECIONAR JOGADORES QUANDO O ADMIN INICIAR
     useEffect(() => {
-        if (!sessionId || !playerId) return;
+        if (!sessionId) return;
 
-        // Verificar status da sessão em tempo real
         const channel = supabase
             .channel(`session-${sessionId}-status`)
             .on(
@@ -198,59 +170,45 @@ export default function InicioSessao() {
                     filter: `id=eq.${sessionId}`
                 },
                 (payload) => {
-                    console.log('Status da sessão atualizado:', payload.new.status);
-                    
                     if (payload.new.status === 'in_progress') {
-                        // Redirecionar todos os jogadores para o quiz
-                        window.location.href = `/quiz?sessao=${sessionId}&pergunta=${payload.new.current_order || 1}`;
+                        window.location.href =
+                            `/quiz?sessao=${sessionId}&pergunta=${payload.new.current_order || 1}`;
                     }
                 }
             )
             .subscribe();
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [sessionId, playerId]);
+        return () => supabase.removeChannel(channel);
+    }, [sessionId]);
 
-    // 🔹 VERIFICAR SE JOGADOR PODE ENTRAR
+    // 🔹 VERIFICAR SE O PLAYER TEM PERMISSÃO
     useEffect(() => {
         if (!sessionId || !playerId) {
-            // Redirecionar para login se não tiver parâmetros
             window.location.href = '/login-jogador';
             return;
         }
 
         async function verificarAcesso() {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('session_player')
                 .select('*')
                 .eq('id', playerId)
                 .eq('session_id', sessionId)
                 .single();
 
-            if (error || !data) {
-                console.error('Jogador não encontrado na sessão');
+            if (!data) {
                 window.location.href = '/login-jogador';
                 return;
             }
 
-            // Verificar se sessão existe
             const { data: sessaoData } = await supabase
                 .from('session')
                 .select('*')
                 .eq('id', sessionId)
                 .single();
 
-            if (!sessaoData) {
-                alert('Sessão não encontrada!');
-                window.location.href = '/login-jogador';
-                return;
-            }
-
-            // Verificar se sessão ainda não começou
-            if (sessaoData.status !== 'pending') {
-                alert('A sessão já começou ou foi finalizada!');
+            if (!sessaoData || sessaoData.status !== 'pending') {
+                alert('A sessão já começou!');
                 window.location.href = '/login-jogador';
                 return;
             }
@@ -273,7 +231,7 @@ export default function InicioSessao() {
 
     return (
         <div className={style.inicioSessao}>
-            <Header 
+            <Header
                 playerName={playerInfo?.nickname}
                 playerEmoji={playerInfo?.emoji}
                 playerColor={playerInfo?.color}
@@ -285,19 +243,19 @@ export default function InicioSessao() {
                         {sessao?.quiz?.quiz_name || 'Sala de Espera'}
                     </h1>
                     <p className={style.codigoSala}>
-                        Código da sala: <strong>{sessao?.code || '...'}</strong>
+                        Código da sala: <strong>{sessao?.code}</strong>
                     </p>
                     <p className={style.contadorJogadores}>
                         {jogadores.length} jogador(es) conectado(s)
                     </p>
                 </div>
-                <img src={Logo} className={style.logo} alt="Logo" />
+                <img src={Logo} className={style.logo} />
             </div>
 
             <div className={style.jogadores}>
                 {jogadores.length > 0 ? (
-                    jogadores.map((jogador) => (
-                        <Jogador 
+                    jogadores.map(jogador => (
+                        <Jogador
                             key={jogador.id}
                             nome={jogador.nickname}
                             emoji={jogador.emoji}
@@ -307,28 +265,24 @@ export default function InicioSessao() {
                         />
                     ))
                 ) : (
-                    <p className={style.semJogadores}>
-                        Aguardando jogadores entrarem...
-                    </p>
+                    <p className={style.semJogadores}>Aguardando jogadores...</p>
                 )}
             </div>
-            
+
             {jogadores.length > 0 && (
-                <AlertaAguardandoJogadores 
+                <AlertaAguardandoJogadores
                     totalJogadores={jogadores.length}
                     minJogadores={1}
                 />
             )}
 
-            {/* ALERTA ANTES DO JOGO - Só aparece para admin */}
-            {!jogoIniciado && isAdmin && (
-                <AlertaInicioJogo 
+            {isAdmin && !jogoIniciado && (
+                <AlertaInicioJogo
                     onIniciar={handleIniciarJogo}
                     totalJogadores={jogadores.length}
                 />
             )}
 
-            {/* Indicador para jogadores não-admin */}
             {!isAdmin && (
                 <div className={style.aguardandoAdmin}>
                     <p>Aguardando o administrador iniciar o jogo...</p>

@@ -32,7 +32,6 @@ export default function VisualizarQuiz() {
                 setQuiz(quizData);
             }
 
-            // --- 2) Buscar IDs das perguntas da pivô ---
             const { data: pivotData, error: pivotError } = await supabase
                 .from("quiz_question")
                 .select("question_id")
@@ -52,7 +51,6 @@ export default function VisualizarQuiz() {
                 return;
             }
 
-            // --- 3) Buscar perguntas reais na tabela 'question' ---
             const { data: questionData, error: questionError } = await supabase
                 .from("question")
                 .select("*")
@@ -60,10 +58,27 @@ export default function VisualizarQuiz() {
 
             if (questionError) {
                 console.error("Erro ao buscar perguntas:", questionError);
-            } else {
-                setQuestions(questionData);
+                setLoading(false);
+                return;
             }
 
+            const { data: optionData, error: optionError } = await supabase
+                .from("option")
+                .select("*")
+                .in("question_id", questionIds);
+
+            if (optionError) {
+                console.error("Erro ao buscar opções:", optionError);
+                setLoading(false);
+                return;
+            }
+
+            const questionsWithOptions = questionData.map(q => ({
+                ...q,
+                options: optionData.filter(op => op.question_id === q.id)
+            }));
+
+            setQuestions(questionsWithOptions);
             setLoading(false);
         }
 
@@ -72,6 +87,11 @@ export default function VisualizarQuiz() {
 
     if (loading) return <p className={styles.loadingText}>Carregando quiz...</p>;
     if (!quiz) return <p className={styles.errorText}>Quiz não encontrado!</p>;
+
+    // 👉 Função que você pediu
+    function iniciarSecao() {
+        window.location.href = "/gerenciamentosessao";
+    }
 
     return (
         <div className={styles.pageContainer}>
@@ -95,14 +115,24 @@ export default function VisualizarQuiz() {
                     <ul className={styles.questionList}>
                         {questions.map((q) => (
                             <li key={q.id} className={styles.questionItem}>
-                                {q.text}
+                                <p className={styles.questionText}>
+                                    {q.question_text}
+                                </p>
+
+                                <div className={styles.optionContainer}>
+                                    {q.options.map((op) => (
+                                        <p key={op.id} className={styles.optionItem}>
+                                            {op.option_text}
+                                        </p>
+                                    ))}
+                                </div>
                             </li>
                         ))}
                     </ul>
                 )}
 
-                <button className={styles.primaryButton}>
-                    Iniciar Quiz
+                <button className={styles.primaryButton} onClick={iniciarSecao}>
+                    Iniciar Sessão
                 </button>
             </div>
         </div>

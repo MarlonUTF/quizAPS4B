@@ -274,7 +274,7 @@ export default function InicioSessao() {
   // 🔹 VERIFICAR SE O JOGADOR TEM PERMISSÃO PARA ENTRAR
   useEffect(() => {
     if (!sessionId || !playerId) {
-      navigate("/login-jogador");
+      navigate("/telaloginjogador");
       return;
     }
 

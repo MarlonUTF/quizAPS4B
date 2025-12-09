@@ -1,3 +1,4 @@
+// ViewQuiz.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import Logo from "../../../public/logo.png"; 
@@ -85,30 +86,38 @@ export default function VisualizarQuiz() {
         fetchQuizData();
     }, [quizId]);
 
-    if (loading) return <p className={styles.loadingText}>Carregando quiz...</p>;
-    if (!quiz) return <p className={styles.errorText}>Quiz não encontrado!</p>;
 
-    // 👉 Função que você pediu
     function iniciarSecao() {
         window.location.href = "/gerenciamentosessao";
     }
+
+    function editarQuiz() {
+        localStorage.setItem("editQuizId", quizId);
+        window.location.href = "/criarquiz";
+    }
+
+    if (loading) return <p className={styles.loadingText}>Carregando quiz...</p>;
+    if (!quiz) return <p className={styles.errorText}>Quiz não encontrado!</p>;
 
     return (
     <div className="viewQuiz">
         <Header />    
         
-
-         <div className={styles.pageContainer}>
+        <div className={styles.pageContainer}>
             <img src={Logo} alt="Logo"  height={100} width={100} />
             <div className={styles.content}>
                 
-
-                <h1 className={styles.quizTitle}>{quiz.name}</h1>
-
+                <h1 className={styles.quizTitle}>{quiz.quiz_name}</h1>
 
                 <div className={styles.infoBox}>
                     <p><strong>ID:</strong> {quiz.id}</p>
-                    <p><strong>Descrição:</strong> {quiz.description || "Sem descrição"}</p>
+                    <p><strong>Descrição:</strong> {quiz.quiz_description || "Sem descrição"}</p>
+                </div>
+
+                <div className={styles.actionsTop}>
+                    <button className={styles.secondaryButton} onClick={editarQuiz}>
+                        ✏ Editar Quiz
+                    </button>
                 </div>
 
                 <h2 className={styles.questionsTitle}>Perguntas do Quiz</h2>

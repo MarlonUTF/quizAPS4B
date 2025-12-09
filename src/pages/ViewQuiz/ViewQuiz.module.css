@@ -1,0 +1,419 @@
+/* ViewQuiz.module.css */
+@import url('https://fonts.googleapis.com/css2?family=Road+Rage&display=swap');
+
+
+/* ============================
+   Layout geral
+================================*/
+.pageContainer {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8c7c0; /* rosa pastel */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
+}
+
+.content {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ============================
+   Título do Quiz
+================================*/
+.quizTitle {
+  text-align: center;
+  font-size: 4rem;
+  font-family: "Road Rage", sans-serif;
+  margin-bottom: 30px;
+  color: #000;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .quizTitle {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quizTitle {
+    font-size: 2.2rem;
+  }
+}
+
+/* ============================
+   Informações do Quiz
+================================*/
+.infoBox {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease;
+}
+
+.infoBox p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.infoBox strong {
+  color: #644dc4;
+  font-weight: 600;
+}
+
+.quizId {
+  background-color: #313191;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+/* ============================
+   Título das Perguntas
+================================*/
+.questionsTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #d7b3ad;
+}
+
+@media (max-width: 768px) {
+  .questionsTitle {
+    font-size: 1.6rem;
+  }
+}
+
+/* ============================
+   Lista de Perguntas
+================================*/
+.questionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.questionItem {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.4s ease;
+  border-left: 6px solid #644dc4;
+  transition: transform 0.2s ease;
+}
+
+.questionItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.questionText {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ============================
+   Opções das Perguntas
+================================*/
+.optionContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+  .optionContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.optionItem {
+  padding: 16px;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  word-break: break-word;
+  position: relative;
+}
+
+/* Cores para as opções (em ordem fixa) */
+.optionItem:nth-child(1) { background-color: #cf3f52; }
+.optionItem:nth-child(2) { background-color: #6951a1; }
+.optionItem:nth-child(3) { background-color: #3fa09b; }
+.optionItem:nth-child(4) { background-color: #313191; }
+
+.optionItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge para resposta correta */
+.correctBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* ============================
+   Botão Principal
+================================*/
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.primaryButton {
+  background-color: #644dc4;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 14px 40px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(100, 77, 196, 0.2);
+}
+
+.primaryButton:hover {
+  background-color: #553cb3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(100, 77, 196, 0.3);
+}
+
+.primaryButton:active {
+  transform: translateY(0);
+}
+
+/* ============================
+   Estados de Loading e Erro
+================================*/
+.loadingText {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #644dc4;
+  margin-top: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.loadingText:before {
+  content: "⌛";
+  font-size: 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+.errorText {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #cf3f52;
+  margin-top: 50px;
+  padding: 20px;
+  background-color: #ffece8;
+  border-radius: 12px;
+  border: 2px solid #cf3f52;
+}
+
+.errorText:before {
+  content: "⚠️";
+  margin-right: 10px;
+}
+
+.noQuestions {
+  text-align: center;
+  padding: 30px;
+  background-color: #ffece8;
+  border: 2px dashed #d7b3ad;
+  border-radius: 18px;
+  color: #333;
+  font-size: 1.2rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.noQuestions:before {
+  content: "❓";
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* ============================
+   Modo de Exibição (Vista de Jogador)
+================================*/
+.previewMode {
+  background-color: #313191;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.previewMode:before {
+  content: "👁️";
+  font-size: 1rem;
+}
+
+/* ============================
+   Contador de Perguntas
+================================*/
+.questionsCounter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.counterText {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.counterNumber {
+  background-color: #644dc4;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+/* ============================
+   Animações
+================================*/
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================
+   Responsividade
+================================*/
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 15px;
+  }
+  
+  .questionItem {
+    padding: 20px;
+  }
+  
+  .questionText {
+    font-size: 1.2rem;
+  }
+  
+  .optionItem {
+    min-height: 70px;
+    font-size: 1rem;
+  }
+  
+  .primaryButton {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 10px;
+  }
+  
+  .infoBox {
+    padding: 15px;
+  }
+  
+  .questionItem {
+    padding: 15px;
+  }
+  
+  .questionText {
+    font-size: 1.1rem;
+  }
+  
+  .optionItem {
+    min-height: 60px;
+    font-size: 0.95rem;
+  }
+  
+  .primaryButton {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+}

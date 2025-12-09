@@ -19,7 +19,6 @@ export default function CreateQuiz() {
     { option_text: "", is_correct: false, color: optionColors[1] },
   ]);
   
-  // Estado para controlar qual pergunta está sendo editada
   const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
   const [editingQuestionText, setEditingQuestionText] = useState("");
   const [editingOptions, setEditingOptions] = useState([]);

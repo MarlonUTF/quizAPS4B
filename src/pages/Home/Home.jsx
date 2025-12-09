@@ -1,16 +1,39 @@
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { supabase } from "../../supabaseClient";
 import Logo from '../../../public/logo.png';
-import ImgPlus from "../../../public/adicionar.png"
-import styles from "./Home.module.css"
-import Header from '../../components/layout/Header/Header'
+import ImgPlus from "../../../public/adicionar.png";
+import styles from "./Home.module.css";
+import Header from '../../components/layout/Header/Header';
 
 export default function Home() {
 
-    const navigate = useNavigate()
+    const [quizzes, setQuizzes] = useState([]);
 
     function handleCreateQuiz() {
-        navigate("/criarquiz")
+        window.location.href = "/criarquiz";
     }
+
+    // 👉 Salvar o quizId no localStorage e ir para /verquiz
+    function abrirQuiz(id) {
+        localStorage.setItem("quizId", id);
+        window.location.href = "/verquiz";
+    }
+
+    async function loadQuizzes() {
+        const { data, error } = await supabase
+            .from("quiz")
+            .select("*");
+
+        if (error) {
+            console.error("Erro ao carregar quizzes:", error);
+        } else {
+            setQuizzes(data);
+        }
+    }
+
+    useEffect(() => {
+        loadQuizzes();
+    }, []);
 
     return (
         <div>
@@ -22,6 +45,7 @@ export default function Home() {
 
                 <div className={styles.buttonsRow}>
 
+                    {/* Botão Criar Quiz */}
                     <div className={styles.option}>
                         <button 
                             className={styles.btnAdd} 
@@ -32,17 +56,20 @@ export default function Home() {
                         <p>Criar Quiz</p>
                     </div>
 
-                    <div className={styles.option}>
-                        <button className={styles.btnGreen}></button>
-                        <p>Criar nova Sala</p>
-                    </div>
+                    {quizzes.map((quiz) => (
+                        <div className={styles.option} key={quiz.id}>
+                            <button 
+                                className={styles.btnGreen}
+                                onClick={() => abrirQuiz(quiz.id)}
+                            >
+                                {quiz.name?.slice(0, 12) }
+                            </button>
+                            <p>{quiz.quiz_name}</p>
+                        </div>
+                    ))}
 
-                    <div className={styles.option}>
-                        <button className={styles.btnPurple}></button>
-                        <p>Criar nova Sala</p>
-                    </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }

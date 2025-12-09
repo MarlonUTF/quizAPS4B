@@ -20,17 +20,47 @@ export default function TelaLoginJogador() {
   // ============================
 
   const emojis = [
-    "😀", "😁", "😆", "🤣", "😇", "😍", "🤩", "🥰", "😘",
-    "😋", "🤪", "😝", "🤑", "🤗", "🤭", "🤔", "🤠", "🥳",
-    "😎", "🤓", "🙃", "🤨", "😐", "😑",
+    "😀",
+    "😁",
+    "😆",
+    "🤣",
+    "😇",
+    "😍",
+    "🤩",
+    "🥰",
+    "😘",
+    "😋",
+    "🤪",
+    "😝",
+    "🤑",
+    "🤗",
+    "🤭",
+    "🤔",
+    "🤠",
+    "🥳",
+    "😎",
+    "🤓",
+    "🙃",
+    "🤨",
+    "😐",
+    "😑",
   ];
 
   const pastelColors = [
-    "rgb(255, 160, 160)", "rgb(255, 180, 120)", "rgb(255, 255, 150)",
-    "rgb(170, 255, 170)", "rgb(150, 240, 240)", "rgb(190, 160, 255)",
-    "rgb(255, 140, 170)", "rgb(255, 200, 140)", "rgb(200, 255, 150)",
-    "rgb(150, 210, 255)", "rgb(230, 170, 255)", "rgb(255, 215, 170)",
-    "rgb(170, 255, 220)", "rgb(170, 200, 255)",
+    "rgb(255, 160, 160)",
+    "rgb(255, 180, 120)",
+    "rgb(255, 255, 150)",
+    "rgb(170, 255, 170)",
+    "rgb(150, 240, 240)",
+    "rgb(190, 160, 255)",
+    "rgb(255, 140, 170)",
+    "rgb(255, 200, 140)",
+    "rgb(200, 255, 150)",
+    "rgb(150, 210, 255)",
+    "rgb(230, 170, 255)",
+    "rgb(255, 215, 170)",
+    "rgb(170, 255, 220)",
+    "rgb(170, 200, 255)",
   ];
 
   // ============================
@@ -50,7 +80,8 @@ export default function TelaLoginJogador() {
   };
 
   const mudarEmojiECor = () => {
-    let localUsedColors = usedColors.length >= pastelColors.length ? [] : usedColors;
+    let localUsedColors =
+      usedColors.length >= pastelColors.length ? [] : usedColors;
     let localUsedEmojis = usedEmojis.length >= emojis.length ? [] : usedEmojis;
 
     const colorIndex = getUniqueIndex(pastelColors, localUsedColors);
@@ -59,10 +90,10 @@ export default function TelaLoginJogador() {
     setCurrentColor(pastelColors[colorIndex]);
     setCurrentEmoji(emojis[emojiIndex]);
 
-    setUsedColors(prev =>
+    setUsedColors((prev) =>
       prev.length >= pastelColors.length ? [colorIndex] : [...prev, colorIndex]
     );
-    setUsedEmojis(prev =>
+    setUsedEmojis((prev) =>
       prev.length >= emojis.length ? [emojiIndex] : [...prev, emojiIndex]
     );
   };
@@ -92,7 +123,7 @@ export default function TelaLoginJogador() {
         color: currentColor,
         emoji: currentEmoji,
         is_admin: false,
-        connected: true
+        connected: true,
       })
       .select()
       .single();
@@ -110,10 +141,13 @@ export default function TelaLoginJogador() {
   // NOVO: SALVAR LOCALMENTE
   // ============================
   function salvarLocal(player, sessionCode) {
-    localStorage.setItem("quiz-player", JSON.stringify({
-      ...player,
-      room_code: sessionCode // Manter código da sala para referência
-    }));
+    localStorage.setItem(
+      "quiz-player",
+      JSON.stringify({
+        ...player,
+        room_code: sessionCode, // Manter código da sala para referência
+      })
+    );
   }
 
   // ============================
@@ -162,7 +196,7 @@ export default function TelaLoginJogador() {
     setIsLoading(false);
 
     // 4 — Redirecionar
-    window.location.href = `/espera-jogador?session=${sessionId}&player=${jogadorCriado.id}`;
+    window.location.href = `/sessao?session=${sessionId}&player=${jogadorCriado.id}`;
   };
 
   const handleKeyPress = (e) => {
@@ -231,7 +265,6 @@ export default function TelaLoginJogador() {
               {isLoading ? <div className="spinner"></div> : "Entrar"}
             </button>
           </div>
-
         </div>
       </div>
     </div>

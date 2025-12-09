@@ -1,9 +1,10 @@
+/* ViewQuiz.module.css */
 @import url('https://fonts.googleapis.com/css2?family=Road+Rage&display=swap');
+
 
 /* ============================
    Layout geral
-===============================*/
-
+================================*/
 .pageContainer {
   width: 100%;
   min-height: 100vh;
@@ -11,52 +12,193 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 25px;
   font-family: 'Inter', sans-serif;
+  padding: 20px;
 }
 
 .content {
   width: 100%;
   max-width: 900px;
-  background: none;
+  margin: 0 auto;
 }
 
 /* ============================
    Título do Quiz
-===============================*/
-
+================================*/
 .quizTitle {
   text-align: center;
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-family: "Road Rage", sans-serif;
-  margin-bottom: 35px;
+  margin-bottom: 30px;
   color: #000;
   letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
-/* ID do Quiz */
-.quizIdBox {
-  background-color: #4caf50;
-  color: white;
-  display: inline-flex;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin: 0 auto;
-  margin-bottom: 25px;
+@media (max-width: 768px) {
+  .quizTitle {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quizTitle {
+    font-size: 2.2rem;
+  }
 }
 
 /* ============================
-   Botões principais
-===============================*/
+   Informações do Quiz
+================================*/
+.infoBox {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease;
+}
 
-.actionsRow {
+.infoBox p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.infoBox strong {
+  color: #644dc4;
+  font-weight: 600;
+}
+
+.quizId {
+  background-color: #313191;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+/* ============================
+   Título das Perguntas
+================================*/
+.questionsTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #d7b3ad;
+}
+
+@media (max-width: 768px) {
+  .questionsTitle {
+    font-size: 1.6rem;
+  }
+}
+
+/* ============================
+   Lista de Perguntas
+================================*/
+.questionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.questionItem {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.4s ease;
+  border-left: 6px solid #644dc4;
+  transition: transform 0.2s ease;
+}
+
+.questionItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.questionText {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ============================
+   Opções das Perguntas
+================================*/
+.optionContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+  .optionContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.optionItem {
+  padding: 16px;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  word-break: break-word;
+  position: relative;
+}
+
+/* Cores para as opções (em ordem fixa) */
+.optionItem:nth-child(1) { background-color: #cf3f52; }
+.optionItem:nth-child(2) { background-color: #6951a1; }
+.optionItem:nth-child(3) { background-color: #3fa09b; }
+.optionItem:nth-child(4) { background-color: #313191; }
+
+.optionItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge para resposta correta */
+.correctBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* ============================
+   Botão Principal
+================================*/
+.buttonContainer {
   display: flex;
   justify-content: center;
-  gap: 15px;
-  margin-bottom: 35px;
-  flex-wrap: wrap;
+  margin-top: 40px;
+  margin-bottom: 20px;
 }
 
 .primaryButton {
@@ -64,116 +206,146 @@
   color: white;
   border: none;
   border-radius: 20px;
-  padding: 12px 35px;
+  padding: 14px 40px;
   font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(100, 77, 196, 0.2);
 }
 
 .primaryButton:hover {
   background-color: #553cb3;
   transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(100, 77, 196, 0.3);
 }
 
-.secondaryButton {
-  background-color: #ffece8;
-  border: 2px solid #d7b3ad;
-  border-radius: 20px;
-  padding: 12px 28px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: 0.2s ease;
-  font-weight: 500;
-}
-
-.secondaryButton:hover {
-  background-color: #ffe7e2;
-  transform: translateY(-2px);
+.primaryButton:active {
+  transform: translateY(0);
 }
 
 /* ============================
-   Separador
-===============================*/
-
-.separator {
-  width: 100%;
-  height: 2px;
-  background-color: #d7b3ad;
-  margin: 20px 0 35px 0;
-}
-
-/* ============================
-   Lista de Perguntas
-===============================*/
-
-.questionCard {
-  background-color: #fff;
-  padding: 22px;
-  border-radius: 18px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  animation: fadeIn 0.25s ease;
-  border-left: 6px solid #644dc4;
-}
-
-.questionText {
+   Estados de Loading e Erro
+================================*/
+.loadingText {
+  text-align: center;
   font-size: 1.3rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-.optionsList {
-  margin-top: 10px;
-  display: grid;
+  color: #644dc4;
+  margin-top: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
 }
 
-.optionItem {
-  padding: 12px 15px;
-  border-radius: 12px;
+.loadingText:before {
+  content: "⌛";
+  font-size: 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+.errorText {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #cf3f52;
+  margin-top: 50px;
+  padding: 20px;
   background-color: #ffece8;
-  border: 2px solid #d7b3ad;
-  font-size: 1.1rem;
-  transition: 0.2s;
+  border-radius: 12px;
+  border: 2px solid #cf3f52;
 }
 
-.optionItem:hover {
-  background-color: #ffe7e2;
+.errorText:before {
+  content: "⚠️";
+  margin-right: 10px;
 }
-
-/* Resposta correta */
-.correctOption {
-  background-color: #c5e7c9 !important;
-  border-color: #8bc34a !important;
-  font-weight: bold;
-}
-
-/* ============================
-   Mensagem se não houver perguntas
-===============================*/
 
 .noQuestions {
   text-align: center;
-  font-size: 1.2rem;
-  color: #444;
-  padding: 20px;
+  padding: 30px;
   background-color: #ffece8;
   border: 2px dashed #d7b3ad;
+  border-radius: 18px;
+  color: #333;
+  font-size: 1.2rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.noQuestions:before {
+  content: "❓";
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* ============================
+   Modo de Exibição (Vista de Jogador)
+================================*/
+.previewMode {
+  background-color: #313191;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.previewMode:before {
+  content: "👁️";
+  font-size: 1rem;
+}
+
+/* ============================
+   Contador de Perguntas
+================================*/
+.questionsCounter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffffff;
   border-radius: 16px;
-  animation: fadeIn 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.counterText {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.counterNumber {
+  background-color: #644dc4;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
 }
 
 /* ============================
    Animações
-===============================*/
-
+================================*/
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -181,36 +353,67 @@
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ============================
    Responsividade
-===============================*/
-
+================================*/
 @media (max-width: 768px) {
-  .quizTitle {
-    font-size: 2.5rem;
+  .pageContainer {
+    padding: 15px;
   }
-
-  .primaryButton,
-  .secondaryButton {
-    width: 100%;
-    justify-content: center;
+  
+  .questionItem {
+    padding: 20px;
   }
-
+  
   .questionText {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
-
+  
   .optionItem {
+    min-height: 70px;
     font-size: 1rem;
+  }
+  
+  .primaryButton {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
   .pageContainer {
+    padding: 10px;
+  }
+  
+  .infoBox {
     padding: 15px;
   }
-
-  .quizTitle {
-    font-size: 2rem;
+  
+  .questionItem {
+    padding: 15px;
+  }
+  
+  .questionText {
+    font-size: 1.1rem;
+  }
+  
+  .optionItem {
+    min-height: 60px;
+    font-size: 0.95rem;
+  }
+  
+  .primaryButton {
+    padding: 10px 20px;
+    font-size: 1rem;
   }
 }

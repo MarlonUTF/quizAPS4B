@@ -94,13 +94,17 @@ export default function VisualizarQuiz() {
     }
 
     return (
-        <div className={styles.pageContainer}>
-            <Header />
+    <div className="viewQuiz">
+        <Header />    
+        
 
+         <div className={styles.pageContainer}>
+            <img src={Logo} alt="Logo"  height={100} width={100} />
             <div className={styles.content}>
-                <img src={Logo} alt="Logo" height={80} className={styles.logo} />
+                
 
                 <h1 className={styles.quizTitle}>{quiz.name}</h1>
+
 
                 <div className={styles.infoBox}>
                     <p><strong>ID:</strong> {quiz.id}</p>
@@ -136,5 +140,7 @@ export default function VisualizarQuiz() {
                 </button>
             </div>
         </div>
+    </div>
+       
     );
 }

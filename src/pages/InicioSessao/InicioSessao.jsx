@@ -19,6 +19,12 @@ export default function InicioSessao() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showNotification, setShowNotification] = useState(null);
+  const [sessionAccessVerified, setSessionAccessVerified] = useState(false);
+
+  // modal / config states para iniciar quiz
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [startTimeInput, setStartTimeInput] = useState("20");
+  const [starting, setStarting] = useState(false);
   
   const sessionId = searchParams.get("session");
   const playerId = searchParams.get("player");
@@ -28,21 +34,21 @@ export default function InicioSessao() {
   const keepAliveIntervalRef = useRef(null);
   const notificationTimeoutRef = useRef(null);
 
-  // 🔹 CARREGAR DADOS DO JOGADOR DO LOCALSTORAGE
+  // 🔹 CARREGAR DADOS DO JOGADOR DO LOCALSTORAGE (REMOVER ISSO - usar banco de dados)
   useEffect(() => {
     const savedPlayer = localStorage.getItem("quiz-player");
     if (savedPlayer) {
       try {
         const playerData = JSON.parse(savedPlayer);
         setPlayerInfo(playerData);
-        setIsAdmin(playerData.is_admin || false);
+        // NÃO DEFINIR isAdmin AQUI - vamos verificar no banco
       } catch (error) {
         console.error("Erro ao carregar jogador do localStorage:", error);
       }
     }
   }, []);
 
-  // 🔹 CARREGAR DADOS DA SESSÃO (UMA VEZ)
+  // 🔹 CARREGAR DADOS DA SESSÃO
   useEffect(() => {
     if (!sessionId) return;
 
@@ -64,31 +70,68 @@ export default function InicioSessao() {
     carregarSessao();
   }, [sessionId]);
 
-  // 🔹 CARREGAR JOGADORES INICIAL + CONFIGURAR SUBSCRIPTION EM TEMPO REAL
+  // 🔹 CARREGAR JOGADORES + VERIFICAR SE PLAYER É ADMIN
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !playerId) return;
 
     let mounted = true;
 
-    async function carregarJogadoresInicial() {
+    async function carregarEVerificar() {
       if (!mounted) return;
       
       setIsLoading(true);
+      
       try {
-        const { data, error } = await supabase
+        // 1. Primeiro verificar se o jogador existe e é admin
+        const { data: jogadorAtual, error: jogadorError } = await supabase
+          .from("session_player")
+          .select("*")
+          .eq("id", playerId)
+          .eq("session_id", sessionId)
+          .single();
+
+        if (jogadorError || !jogadorAtual) {
+          console.error("Jogador não encontrado na sessão:", jogadorError);
+          if (mounted) {
+            alert("Jogador não encontrado nesta sessão!");
+            navigate("/telaloginjogador");
+          }
+          return;
+        }
+
+        // Definir se é admin
+        if (mounted) {
+          setIsAdmin(jogadorAtual.is_admin || false);
+          setPlayerInfo(jogadorAtual);
+          
+          // Salvar no localStorage para referência
+          localStorage.setItem("quiz-player", JSON.stringify({
+            id: jogadorAtual.id,
+            nickname: jogadorAtual.nickname,
+            emoji: jogadorAtual.emoji,
+            color: jogadorAtual.color,
+            is_admin: jogadorAtual.is_admin,
+            session_id: sessionId
+          }));
+        }
+
+        // 2. Carregar todos os jogadores
+        const { data: todosJogadores, error: jogadoresError } = await supabase
           .from("session_player")
           .select("*")
           .eq("session_id", sessionId)
           .order("created_at", { ascending: true });
 
-        if (error) {
-          console.error("Erro ao carregar jogadores:", error);
+        if (jogadoresError) {
+          console.error("Erro ao carregar jogadores:", jogadoresError);
           return;
         }
 
         if (mounted) {
-          setJogadores(data || []);
+          setJogadores(todosJogadores || []);
+          setSessionAccessVerified(true);
         }
+
       } catch (error) {
         console.error("Erro inesperado:", error);
       } finally {
@@ -98,7 +141,7 @@ export default function InicioSessao() {
       }
     }
 
-    carregarJogadoresInicial();
+    carregarEVerificar();
 
     // 🔹 SUBSCRIÇÃO EM TEMPO REAL PARA JOGADORES
     if (playersChannelRef.current) {
@@ -118,9 +161,9 @@ export default function InicioSessao() {
         async (payload) => {
           if (!mounted) return;
 
-          console.log("Mudança detectada:", payload.eventType, payload.new?.nickname);
+          console.log("Mudança detectada:", payload.eventType);
           
-          // Recarregar toda a lista para garantir consistência
+          // Recarregar lista de jogadores
           const { data: updatedPlayers } = await supabase
             .from("session_player")
             .select("*")
@@ -129,6 +172,12 @@ export default function InicioSessao() {
 
           if (mounted && updatedPlayers) {
             setJogadores(updatedPlayers);
+            
+            // Verificar se o jogador atual ainda é admin (caso tenha mudado)
+            const jogadorAtual = updatedPlayers.find(j => j.id === playerId);
+            if (jogadorAtual && mounted) {
+              setIsAdmin(jogadorAtual.is_admin || false);
+            }
             
             // Mostrar notificação para novo jogador
             if (payload.eventType === "INSERT" && payload.new) {
@@ -157,7 +206,36 @@ export default function InicioSessao() {
         clearTimeout(notificationTimeoutRef.current);
       }
     };
-  }, [sessionId]);
+  }, [sessionId, playerId, navigate]);
+
+  // 🔹 VERIFICAR STATUS DA SESSÃO ANTES DE PERMITIR ENTRADA
+  useEffect(() => {
+    if (!sessionId || !sessionAccessVerified) return;
+
+    async function verificarStatusSessao() {
+      const { data: sessaoData, error } = await supabase
+        .from("session")
+        .select("status")
+        .eq("id", sessionId)
+        .single();
+
+      if (error) {
+        console.error("Erro ao verificar status da sessão:", error);
+        return;
+      }
+
+      if (sessaoData.status !== "pending") {
+        const statusMsg = sessaoData.status === "in_progress" 
+          ? "em andamento" 
+          : "finalizada";
+        
+        alert(`Esta sessão já está ${statusMsg}!`);
+        navigate("/telaloginjogador");
+      }
+    }
+
+    verificarStatusSessao();
+  }, [sessionId, sessionAccessVerified, navigate]);
 
   // 🔹 MANTER JOGADOR CONECTADO
   useEffect(() => {
@@ -174,7 +252,6 @@ export default function InicioSessao() {
           .update({ connected: true })
           .eq("id", playerId);
 
-        // Configurar interval para manter conexão
         keepAliveIntervalRef.current = setInterval(async () => {
           if (!mounted) return;
           
@@ -186,7 +263,7 @@ export default function InicioSessao() {
           } catch (error) {
             console.error("Erro ao manter conexão:", error);
           }
-        }, 25000); // A cada 25 segundos
+        }, 25000);
       } catch (error) {
         console.error("Erro ao conectar jogador:", error);
       }
@@ -194,7 +271,6 @@ export default function InicioSessao() {
 
     manterConexao();
 
-    // Função para marcar como desconectado
     const marcarComoDesconectado = async () => {
       try {
         await supabase
@@ -206,7 +282,6 @@ export default function InicioSessao() {
       }
     };
 
-    // Marcar como desconectado ao sair da página
     const handleBeforeUnload = () => {
       marcarComoDesconectado();
     };
@@ -216,20 +291,17 @@ export default function InicioSessao() {
     return () => {
       mounted = false;
       
-      // Limpar interval
       if (keepAliveIntervalRef.current) {
         clearInterval(keepAliveIntervalRef.current);
       }
       
-      // Remover event listener
       window.removeEventListener("beforeunload", handleBeforeUnload);
       
-      // Marcar como desconectado
       marcarComoDesconectado();
     };
   }, [playerId, sessionId]);
 
-  // 🔹 MONITORAR STATUS DA SESSÃO (PARA REDIRECIONAMENTO)
+  // 🔹 MONITORAR STATUS DA SESSÃO PARA REDIRECIONAMENTO
   useEffect(() => {
     if (!sessionId) return;
 
@@ -271,78 +343,8 @@ export default function InicioSessao() {
     };
   }, [sessionId, navigate]);
 
-  // 🔹 VERIFICAR SE O JOGADOR TEM PERMISSÃO PARA ENTRAR
-  useEffect(() => {
-    if (!sessionId || !playerId) {
-      navigate("/telaloginjogador");
-      return;
-    }
-
-    let mounted = true;
-
-    async function verificarAcesso() {
-      try {
-        // Verificar se jogador existe na sessão
-        const { data: jogador, error: jogadorError } = await supabase
-          .from("session_player")
-          .select("*")
-          .eq("id", playerId)
-          .eq("session_id", sessionId)
-          .single();
-
-        if (jogadorError || !jogador) {
-          if (mounted) {
-            alert("Jogador não encontrado na sessão!");
-            navigate("/login-jogador");
-          }
-          return;
-        }
-
-        // Verificar se sessão existe
-        const { data: sessaoData, error: sessaoError } = await supabase
-          .from("session")
-          .select("*")
-          .eq("id", sessionId)
-          .single();
-
-        if (sessaoError || !sessaoData) {
-          if (mounted) {
-            alert("Sessão não encontrada!");
-            navigate("/login-jogador");
-          }
-          return;
-        }
-
-        // Verificar status da sessão
-        if (sessaoData.status !== "pending") {
-          const statusMsg = sessaoData.status === "in_progress" 
-            ? "em andamento" 
-            : "finalizada";
-          
-          if (mounted) {
-            alert(`Esta sessão já está ${statusMsg}!`);
-            navigate("/login-jogador");
-          }
-          return;
-        }
-
-      } catch (error) {
-        console.error("Erro ao verificar acesso:", error);
-        if (mounted) {
-          navigate("/login-jogador");
-        }
-      }
-    }
-
-    verificarAcesso();
-
-    return () => {
-      mounted = false;
-    };
-  }, [sessionId, playerId, navigate]);
-
-  // 🔹 ADMIN: INICIAR JOGO
-  const handleIniciarJogo = async () => {
+  // 🔹 ABRE O MODAL PARA CONFIGURAR TEMPO E INICIAR (chamado pelo botão do AlertaInicioJogo)
+  const handleIniciarJogo = () => {
     if (!isAdmin) {
       alert("Apenas o administrador pode iniciar o jogo!");
       return;
@@ -353,32 +355,121 @@ export default function InicioSessao() {
       return;
     }
 
-    const confirmar = window.confirm(
-      `Iniciar o jogo com ${jogadores.length} jogador(es)?`
-    );
-    
-    if (!confirmar) return;
+    // abre o modal para escolha do tempo
+    setStartTimeInput(String(sessao?.question_time_limit || 20));
+    setShowStartModal(true);
+  };
+
+  // 🔹 START SESSION: valida e atualiza sessão (chamado ao confirmar no modal)
+  const startSession = async () => {
+    if (!isAdmin) {
+      alert("Apenas o administrador pode iniciar o jogo!");
+      return;
+    }
+
+    const tempo = Number(startTimeInput);
+
+    if (!tempo || isNaN(tempo) || tempo < 5) {
+      alert("Informe um tempo válido em segundos (mínimo 5).");
+      return;
+    }
+
+    setStarting(true);
 
     try {
+      // Verificar se há perguntas no quiz
+      if (!sessao?.quiz_id) {
+        alert("Erro: Quiz não encontrado!");
+        setStarting(false);
+        return;
+      }
+
+      const { data: quizQuestions, error: questionsError } = await supabase
+        .from("quiz_question")
+        .select("id")
+        .eq("quiz_id", sessao.quiz_id);
+
+      if (questionsError) {
+        console.error("Erro ao verificar perguntas:", questionsError);
+        alert("Erro ao verificar perguntas do quiz!");
+        setStarting(false);
+        return;
+      }
+
+      if (!quizQuestions || quizQuestions.length === 0) {
+        alert("Este quiz não tem perguntas! Não é possível iniciar.");
+        setStarting(false);
+        return;
+      }
+
+      // Atualiza a sessão para in_progress com o tempo escolhido
       const { error } = await supabase
         .from("session")
         .update({
           status: "in_progress",
           current_order: 1,
+          question_time_limit: tempo,
+          question_started_at: new Date().toISOString()
         })
         .eq("id", sessionId);
 
       if (error) {
         console.error("Erro ao iniciar jogo:", error);
         alert("Erro ao iniciar jogo. Tente novamente.");
+        setStarting(false);
         return;
       }
 
+      // fecha modal e marca iniciado (subscription fará o redirecionamento)
+      setShowStartModal(false);
+      setStarting(false);
       setJogoIniciado(true);
-      navigate(`/quiz?sessao=${sessionId}&pergunta=1`);
+
     } catch (error) {
       console.error("Erro inesperado ao iniciar jogo:", error);
       alert("Erro ao iniciar jogo.");
+      setStarting(false);
+    }
+  };
+
+  // 🔹 CANCELAR MODAL
+  const cancelStartModal = () => {
+    setShowStartModal(false);
+    setStartTimeInput(String(sessao?.question_time_limit || 20));
+  };
+
+  // 🔹 COPIA CÓDIGO DA SALA
+  const copiarCodigoSala = () => {
+    if (!sessao?.code) return;
+    
+    navigator.clipboard.writeText(sessao.code)
+      .then(() => {
+        alert("Código copiado: " + sessao.code);
+      })
+      .catch(err => {
+        console.error("Erro ao copiar código:", err);
+        alert("Código da sala: " + sessao.code);
+      });
+  };
+
+  // 🔹 SAIR DA SALA
+  const sairDaSala = async () => {
+    const confirmar = window.confirm("Tem certeza que deseja sair da sala?");
+    
+    if (confirmar) {
+      try {
+        if (playerId) {
+          await supabase
+            .from("session_player")
+            .update({ connected: false })
+            .eq("id", playerId);
+        }
+        
+        navigate("/telaloginjogador");
+      } catch (error) {
+        console.error("Erro ao sair da sala:", error);
+        navigate("/telaloginjogador");
+      }
     }
   };
 
@@ -392,6 +483,11 @@ export default function InicioSessao() {
 
     return () => clearTimeout(timer);
   }, [showNotification]);
+
+  // 🔹 DEBUG: Mostrar informações no console
+  useEffect(() => {
+    console.log("DEBUG - isAdmin:", isAdmin, "playerId:", playerId, "jogadores:", jogadores.length);
+  }, [isAdmin, playerId, jogadores]);
 
   if (isLoading) {
     return (
@@ -426,24 +522,37 @@ export default function InicioSessao() {
         <img src={Logo} className={style.logo} alt="Logo" />
       </div>
 
+      {/* Código da Sala */}
+      <div className={style.codigoSalaBox} onClick={copiarCodigoSala}>
+        <p>Código da Sala</p>
+        <strong>{sessao?.code || "..."}</strong>
+        <p>Clique para copiar e compartilhar</p>
+      </div>
+
+      {/* Lista de Jogadores */}
       <div className={style.jogadores}>
+        <h3>Jogadores na Sala ({jogadores.length})</h3>
+        
         {jogadores.length > 0 ? (
-          jogadores.map((jogador) => (
-            <Jogador
-              key={jogador.id}
-              nome={jogador.nickname}
-              emoji={jogador.emoji}
-              cor={jogador.color}
-              isConnected={jogador.connected}
-              isAdmin={jogador.is_admin}
-              isCurrentPlayer={jogador.id === playerId}
-            />
-          ))
+          <div className={style.jogadoresList}>
+            {jogadores.map((jogador) => (
+              <Jogador
+                key={jogador.id}
+                nome={jogador.nickname}
+                emoji={jogador.emoji}
+                cor={jogador.color}
+                isConnected={jogador.connected}
+                isAdmin={jogador.is_admin}
+                isCurrentPlayer={jogador.id === playerId}
+              />
+            ))}
+          </div>
         ) : (
           <p className={style.semJogadores}>Aguardando jogadores...</p>
         )}
       </div>
 
+      {/* Alertas */}
       {jogadores.length > 0 && (
         <AlertaAguardandoJogadores
           totalJogadores={jogadores.length}
@@ -451,23 +560,87 @@ export default function InicioSessao() {
         />
       )}
 
+      {/* BOTÃO DO ADMINISTRADOR */}
       {isAdmin && !jogoIniciado && (
-        <AlertaInicioJogo
-          onIniciar={handleIniciarJogo}
-          totalJogadores={jogadores.length}
-        />
-      )}
-
-      {!isAdmin && !jogoIniciado && (
-        <div className={style.codigoSalaBox}>
-          <p>Código da Sala</p>
-          <strong>{sessao?.code}</strong>
-          <p>{jogadores.length} jogador(es) conectado(s)</p>
-          <p className={style.aguardandoAdminText}>
-            Aguardando o administrador iniciar o jogo...
+        <div className={style.adminSection}>
+          <div className={style.adminBadge}>
+            <span>👑</span>
+            <span>Você é o Administrador</span>
+          </div>
+          
+          {/* AlertaInicioJogo chama handleIniciarJogo que abre o modal */}
+          <AlertaInicioJogo
+            onIniciar={handleIniciarJogo}
+            totalJogadores={jogadores.length}
+            minPlayersRequired={1}
+          />
+          
+          <p className={style.adminInstructions}>
+            Clique em "Iniciar Quiz" quando todos os jogadores estiverem prontos.
+            <br />
+            O jogo começará para todos os jogadores simultaneamente.
           </p>
         </div>
       )}
+
+      {/* MENSAGEM PARA JOGADORES NORMAIS */}
+      {!isAdmin && !jogoIniciado && (
+        <div className={style.waitingMessage}>
+          <p className={style.aguardandoAdminText}>
+            Aguardando o administrador iniciar o jogo...
+          </p>
+          <p>{jogadores.length} jogador(es) na sala</p>
+          <button onClick={sairDaSala} className={style.exitButton}>
+            Sair da Sala
+          </button>
+        </div>
+      )}
+
+      {/* -------------------- MODAL DE INÍCIO -------------------- */}
+      {showStartModal && (
+        <div className={style.modalOverlay} role="dialog" aria-modal="true">
+          <div className={style.modal}>
+            <h3>Configurar início do Quiz</h3>
+            <p>Defina o tempo (em segundos) para cada pergunta:</p>
+
+            <div className={style.modalInputRow}>
+              <input
+                type="number"
+                min="5"
+                step="1"
+                value={startTimeInput}
+                onChange={(e) => setStartTimeInput(e.target.value)}
+                className={style.modalInput}
+              />
+              <span>segundos</span>
+            </div>
+
+            <div className={style.modalButtons}>
+              <button
+                className={style.modalCancel}
+                onClick={cancelStartModal}
+                disabled={starting}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className={style.modalConfirm}
+                onClick={startSession}
+                disabled={starting}
+              >
+                {starting ? "Iniciando..." : `Iniciar Quiz (${startTimeInput}s)`}
+              </button>
+            </div>
+
+            <p className={style.modalNote}>
+              Ao iniciar, todos os jogadores serão redirecionados para a primeira pergunta.
+            </p>
+          </div>
+        </div>
+      )}
+      {/* ------------------ fim modal ------------------- */}
+
     </div>
   );
 }

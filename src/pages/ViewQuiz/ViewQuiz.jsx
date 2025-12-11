@@ -194,7 +194,7 @@ export default function VisualizarQuiz() {
 
     return (
         <div className="viewQuiz">
-            <Header />    
+           <Header showOnlyWhenData={true} />
             
             <div className={styles.pageContainer}>
                 <img src={Logo} alt="Logo" height={100} width={100} />

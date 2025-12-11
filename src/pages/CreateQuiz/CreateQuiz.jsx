@@ -249,7 +249,7 @@ export default function CreateQuiz() {
 
   return (
     <div>
-      <Header />
+      <Header showOnlyWhenData={true} />
 
       <div className={styles.pageContainer}>
         <div className={styles.content}>

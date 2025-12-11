@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Apenas adicionei isso
 import style from "./header.module.css";
 
 export default function Header({ 
@@ -6,11 +7,11 @@ export default function Header({
     playerName = "", 
     playerEmoji = "", 
     playerColor = "",
-    showOnlyWhenData = false // Nova prop: só mostra se tiver dados
+    showOnlyWhenData = false
 }) {
     const [hasContent, setHasContent] = useState(false);
+    const navigate = useNavigate(); // Apenas adicionei isso
 
-    // Verifica se há conteúdo para exibir
     useEffect(() => {
         const hasTitle = textoTitulo && textoTitulo.trim() !== "";
         const hasPlayer = playerName && playerEmoji && playerColor;
@@ -19,9 +20,23 @@ export default function Header({
         setHasContent(shouldShow);
     }, [textoTitulo, playerName, playerEmoji, playerColor]);
 
-    // Se não deve mostrar nada e não tem conteúdo, retorna null
+    // Função simples para ir para home
+    const goHome = () => {
+        navigate('/');
+    };
+
     if (showOnlyWhenData && !hasContent) {
-        return null;
+        return (
+            // Quando não tem conteúdo, mostra apenas o botão Home
+            <header className={style.header}>
+                <button 
+                    className={style.homeBtn}
+                    onClick={goHome}
+                >
+                    Home
+                </button>
+            </header>
+        );
     }
 
     const hasPlayer = playerName && playerEmoji && playerColor;

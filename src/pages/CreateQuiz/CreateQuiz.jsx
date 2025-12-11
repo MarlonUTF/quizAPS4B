@@ -10,21 +10,19 @@ export default function CreateQuiz() {
   const [quizDescription, setQuizDescription] = useState("");
   const [quizId, setQuizId] = useState(null);
   const [questionText, setQuestionText] = useState("");
-
+  
   const optionColors = ["#cf3f52", "#6951a1", "#3fa09b", "#313191"];
-
+  
   const [options, setOptions] = useState([
     { option_text: "", is_correct: false, color: optionColors[0] },
     { option_text: "", is_correct: false, color: optionColors[1] },
   ]);
-
+  
   const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
   const [editingQuestionText, setEditingQuestionText] = useState("");
   const [editingOptions, setEditingOptions] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [userId, setUserId] = useState(null);
-
-  // Novo: detectar EDIÇÃO
   const editQuizId = localStorage.getItem("editQuizId");
 
   useEffect(() => {
@@ -52,7 +50,6 @@ export default function CreateQuiz() {
     setQuizName(quizData.quiz_name);
     setQuizDescription(quizData.quiz_description);
 
-    // Carregar perguntas
     const { data: pivot } = await supabase
       .from("quiz_question")
       .select("question_id")
@@ -87,7 +84,6 @@ export default function CreateQuiz() {
     setQuestions(montado);
   }
 
-  // Criar quiz novo
   const criarQuiz = async () => {
     if (editQuizId) {
       alert("Este quiz já existe. Apenas edite perguntas abaixo.");
@@ -113,8 +109,6 @@ export default function CreateQuiz() {
     alert("Quiz criado com sucesso!");
   };
 
-  // Manter lógica original abaixo…
-
   const marcarComoCorreta = (index, isEditing = false) => {
     if (isEditing) {
       const novas = editingOptions.map((o, i) => ({
@@ -136,7 +130,7 @@ export default function CreateQuiz() {
     const setter = isEditing ? setEditingOptions : setOptions;
 
     if (target.length < 4) {
-      const newColor = optionColors[target.length];
+      const newColor = optionColors[target.length % optionColors.length];
       setter([...target, { option_text: "", is_correct: false, color: newColor }]);
     }
   };
@@ -149,7 +143,7 @@ export default function CreateQuiz() {
       const novas = target.filter((_, i) => i !== index);
       const recolor = novas.map((opt, idx) => ({
         ...opt,
-        color: optionColors[idx]
+        color: optionColors[idx % optionColors.length]
       }));
       setter(recolor);
     }
@@ -231,6 +225,10 @@ export default function CreateQuiz() {
     setEditingQuestionIndex(null);
   };
 
+  const cancelarEdicao = () => {
+    setEditingQuestionIndex(null);
+  };
+
   const excluirPergunta = async (index) => {
     const q = questions[index];
 
@@ -239,6 +237,14 @@ export default function CreateQuiz() {
     await supabase.from("question").delete().eq("id", q.id);
 
     setQuestions(questions.filter((_, i) => i !== index));
+  };
+
+  const adicionarNovaPergunta = () => {
+    if (editingQuestionIndex !== null) {
+      cancelarEdicao();
+    }
+    
+    document.getElementById("nova-pergunta-form")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -250,145 +256,305 @@ export default function CreateQuiz() {
           <img src={Logo} alt="" height={100} width={100} />
 
           <h1 className={styles.newSala}>
-            {editQuizId ? "Editar Quiz" : "Criar Novo Quiz"}
+            {editQuizId ? "Editar Quiz" : "New sala"}
           </h1>
 
           <div className={styles.formGroup}>
-            <label>Sala:</label>
+            <label className={styles.label}>Sala:</label>
             <input
               className={styles.input}
+              type="text"
+              placeholder="digite o nome da sala"
               value={quizName}
               onChange={(e) => setQuizName(e.target.value)}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>Descrição:</label>
+            <label className={styles.label}>Descrição:</label>
             <textarea
               className={styles.input}
+              placeholder="digite a descrição da sala"
               value={quizDescription}
               onChange={(e) => setQuizDescription(e.target.value)}
-              rows={3}
+              rows="3"
             />
           </div>
 
-          {!editQuizId && (
-            <button className={styles.primaryButton} onClick={criarQuiz}>
-              Criar Quiz
-            </button>
-          )}
+          <div className={styles.quizActions}>
+            {!editQuizId && (
+              <button className={styles.primaryButton} onClick={criarQuiz}>
+                Criar Quiz
+              </button>
+            )}
+            {quizId && (
+              <span className={styles.quizId}>Quiz ID: {quizId}</span>
+            )}
+          </div>
 
           <div className={styles.separator}></div>
 
-          {/* Form de criar pergunta */}
-          <div className={styles.questionForm}>
-            <h3>Nova Pergunta</h3>
+          <div id="nova-pergunta-form" className={styles.questionForm}>
+            <h3>Adicionar Nova Pergunta</h3>
 
-            <textarea
-              className={styles.input}
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              placeholder="Texto da pergunta"
-            />
-
-            <h4>Opções</h4>
-
-            {options.map((opt, i) => (
-              <div key={i} className={styles.optionRow}>
-                <input
-                  className={styles.optionInput}
-                  value={opt.option_text}
-                  onChange={(e) => {
-                    const novas = [...options];
-                    novas[i].option_text = e.target.value;
-                    setOptions(novas);
-                  }}
-                />
-                <button
-                  className={styles.correctButton}
-                  onClick={() => marcarComoCorreta(i)}
-                  style={{ background: opt.is_correct ? opt.color : "#777" }}
-                >
-                  {opt.is_correct ? "✔" : "✓"}
-                </button>
-                {options.length > 2 && (
-                  <button onClick={() => removerOpcao(i)}>x</button>
-                )}
-              </div>
-            ))}
-
-            <button
-              className={styles.actionBtn}
-              onClick={() => adicionarOpcao()}
-              disabled={options.length >= 4}
-            >
-              + Opção
-            </button>
-
-            <button
-              className={styles.primaryButton}
-              onClick={salvarPerguntaNoBanco}
-            >
-              Salvar Pergunta
-            </button>
-          </div>
-
-          {/* Lista de perguntas */}
-          <h2>Perguntas</h2>
-
-          {questions.map((q, i) => (
-            <div key={i} className={styles.questionCard}>
-              <p>{q.text}</p>
-
-              {q.options.map((op, j) => (
-                <p key={j} style={{ color: op.color }}>
-                  {op.option_text} {op.is_correct ? "✔" : ""}
-                </p>
-              ))}
-
-              <button onClick={() => abrirEdicaoPergunta(i)}>Editar</button>
-              <button onClick={() => excluirPergunta(i)}>Excluir</button>
+            <div className={styles.formGroup}>
+              <textarea
+                className={styles.input}
+                placeholder="Texto da pergunta"
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                rows="3"
+              />
             </div>
-          ))}
 
-          {/* Modal de edição */}
-          {editingQuestionIndex !== null && (
-            <div className={styles.modal}>
-              <div className={styles.modalContent}>
-                <h3>Editar Pergunta</h3>
-
-                <textarea
-                  className={styles.input}
-                  value={editingQuestionText}
-                  onChange={(e) => setEditingQuestionText(e.target.value)}
-                />
-
-                {editingOptions.map((opt, i) => (
-                  <div key={i} className={styles.optionRow}>
-                    <input
-                      className={styles.optionInput}
-                      value={opt.option_text}
-                      onChange={(e) => {
-                        const novas = [...editingOptions];
-                        novas[i].option_text = e.target.value;
-                        setEditingOptions(novas);
-                      }}
-                    />
-                    <button
-                      className={styles.correctButton}
-                      onClick={() => marcarComoCorreta(i, true)}
+            <div className={styles.optionsContainer}>
+              <h4>Opções (máximo 4):</h4>
+              
+              <div className={styles.optionsCounter}>
+                <span className={styles.counterText}>
+                  Opções: {options.length}/4
+                </span>
+              </div>
+              
+              {options.map((opt, i) => (
+                <div key={i} className={styles.optionRow}>
+                  <div className={styles.optionColorIndicator} style={{ backgroundColor: opt.color }}></div>
+                  <input
+                    className={styles.optionInput}
+                    type="text"
+                    placeholder={`Opção ${i + 1}`}
+                    value={opt.option_text}
+                    onChange={(e) => {
+                      const novas = [...options];
+                      novas[i].option_text = e.target.value;
+                      setOptions(novas);
+                    }}
+                    style={{ borderLeftColor: opt.color }}
+                  />
+                  <button
+                    onClick={() => marcarComoCorreta(i)}
+                    className={styles.correctButton}
+                    style={{
+                      background: opt.is_correct ? opt.color : "#888",
+                    }}
+                  >
+                    {opt.is_correct ? "✔ Correta" : "Marcar correta"}
+                  </button>
+                  
+                  {options.length > 2 && (
+                    <button 
+                      onClick={() => removerOpcao(i)}
+                      className={styles.removeButton}
                     >
-                      {opt.is_correct ? "✔" : "✓"}
+                      ×
                     </button>
-                  </div>
-                ))}
-
-                <button onClick={salvarEdicaoPergunta}>Salvar</button>
-                <button onClick={() => setEditingQuestionIndex(null)}>
-                  Cancelar
-                </button>
-              </div>
+                  )}
+                </div>
+              ))}
+              
+              <button 
+                className={styles.actionBtn} 
+                onClick={() => adicionarOpcao()}
+                disabled={options.length >= 4}
+              >
+                + Adicionar opção ({4 - options.length} restantes)
+              </button>
             </div>
+            
+            <div className={styles.formActions}>
+              <button 
+                className={styles.primaryButton} 
+                onClick={salvarPerguntaNoBanco}
+                disabled={!questionText.trim() || options.some(opt => !opt.option_text.trim())}
+              >
+                Salvar Pergunta
+              </button>
+            </div>
+            
+            {!quizId && (
+              <div className={styles.quizWarning}>
+                <p>Você precisa criar o quiz primeiro para salvar perguntas.</p>
+              </div>
+            )}
+          </div>
+          
+          {quizId && (
+            <>
+              <div className={styles.actionsRow}>
+                <button 
+                  className={styles.iconButton} 
+                  onClick={adicionarNovaPergunta}
+                  title="Adicionar nova pergunta"
+                >
+                  <span className={styles.plusIcon}>+</span>
+                </button>
+                
+                <button className={styles.actionBtn}>
+                  Todas
+                </button>
+                <select className={styles.dropdown}>
+                  <option value="banco">Banco</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              
+              {questions.map((question, index) => (
+                <div 
+                  key={question.id} 
+                  className={`${styles.questionCard} ${editingQuestionIndex === index ? styles.editing : ''}`}
+                >
+                  <div className={styles.questionHeaderRow}>
+                    <h3 className={styles.questionHeader}>
+                      Pergunta {index + 1}
+                    </h3>
+                    <div className={styles.questionActions}>
+                      <button 
+                        className={styles.expandButton}
+                        onClick={() => 
+                          editingQuestionIndex === index 
+                            ? cancelarEdicao() 
+                            : abrirEdicaoPergunta(index)
+                        }
+                      >
+                        {editingQuestionIndex === index ? "−" : "+"}
+                      </button>
+                      <button 
+                        className={styles.deleteButton}
+                        onClick={() => excluirPergunta(index)}
+                        title="Excluir pergunta"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {editingQuestionIndex === index ? (
+                    <div className={styles.editForm}>
+                      <div className={styles.formGroup}>
+                        <textarea
+                          className={styles.input}
+                          placeholder="Texto da pergunta"
+                          value={editingQuestionText}
+                          onChange={(e) => setEditingQuestionText(e.target.value)}
+                          rows="3"
+                        />
+                      </div>
+                      
+                      <div className={styles.optionsContainer}>
+                        <h4>Opções (máximo 4):</h4>
+                        
+                        <div className={styles.optionsCounter}>
+                          <span className={styles.counterText}>
+                            Opções: {editingOptions.length}/4
+                          </span>
+                        </div>
+                        
+                        {editingOptions.map((opt, optIndex) => (
+                          <div key={optIndex} className={styles.optionRow}>
+                            <div className={styles.optionColorIndicator} style={{ backgroundColor: opt.color }}></div>
+                            <input
+                              className={styles.optionInput}
+                              type="text"
+                              placeholder={`Opção ${optIndex + 1}`}
+                              value={opt.option_text}
+                              onChange={(e) => {
+                                const novas = [...editingOptions];
+                                novas[optIndex].option_text = e.target.value;
+                                setEditingOptions(novas);
+                              }}
+                              style={{ borderLeftColor: opt.color }}
+                            />
+                            <button
+                              onClick={() => marcarComoCorreta(optIndex, true)}
+                              className={styles.correctButton}
+                              style={{
+                                background: opt.is_correct ? opt.color : "#888",
+                              }}
+                            >
+                              {opt.is_correct ? "✔ Correta" : "Marcar correta"}
+                            </button>
+                            
+                            {editingOptions.length > 2 && (
+                              <button 
+                                onClick={() => removerOpcao(optIndex, true)}
+                                className={styles.removeButton}
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        
+                        <button 
+                          className={styles.actionBtn} 
+                          onClick={() => adicionarOpcao(true)}
+                          disabled={editingOptions.length >= 4}
+                        >
+                          + Adicionar opção ({4 - editingOptions.length} restantes)
+                        </button>
+                      </div>
+                      
+                      <div className={styles.editActions}>
+                        <button 
+                          className={styles.cancelButton}
+                          onClick={cancelarEdicao}
+                        >
+                          Cancelar
+                        </button>
+                        <button 
+                          className={styles.saveButton}
+                          onClick={salvarEdicaoPergunta}
+                          disabled={!editingQuestionText.trim() || editingOptions.some(opt => !opt.option_text.trim())}
+                        >
+                          Salvar Alterações
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className={styles.questionText}>{question.text}</p>
+                      
+                      <div className={styles.optionsGrid}>
+                        {question.options.map((option, optIndex) => (
+                          <div 
+                            key={optIndex} 
+                            className={styles.optionBox}
+                            style={{ backgroundColor: option.color }}
+                          >
+                            <div className={styles.optionContent}>
+                              {option.option_text}
+                              {option.is_correct && (
+                                <span className={styles.correctBadge}>✓</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className={styles.modeContainer}>
+                        <span className={styles.modeBadge}>
+                          Múltipla escolha
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              
+              {questions.length > 0 && (
+                <div className={styles.addQuestionSection}>
+                  <button 
+                    className={styles.addQuestionButton}
+                    onClick={adicionarNovaPergunta}
+                  >
+                    <span className={styles.bigPlusIcon}>+</span>
+                  </button>
+                  <p className={styles.addQuestionText}>
+                    Adicionar nova pergunta
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

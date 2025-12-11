@@ -1,26 +1,59 @@
 import { useState, useEffect } from 'react';
 import style from './alertaInicioQuiz.module.css';
 
-export default function AlertaInicioJogo({ onIniciar }) {
-    const [contador, setContador] = useState(5);
+export default function AlertaInicioJogo({ 
+  onIniciar, 
+  iniciarContagem = false,
+  tempoContagem = 5 
+}) {
+    const [contador, setContador] = useState(tempoContagem);
     const [fade, setFade] = useState(false);
+    const [ativo, setAtivo] = useState(false);
 
+    // Ativar a contagem quando a prop iniciarContagem for true
     useEffect(() => {
-        if (contador > 0) {
-            const timer = setTimeout(() => {
-                setContador(c => c - 1);
-            }, 1000);
-            return () => clearTimeout(timer);
-        } else {
-            setFade(true);
-
-            const timer = setTimeout(() => {
-                onIniciar();
-            }, 800); // Reduzido para 800ms para ser mais rápido
-
-            return () => clearTimeout(timer);
+        if (iniciarContagem && !ativo) {
+            console.log("AlertaInicioJogo: Iniciando contagem");
+            setAtivo(true);
+            setContador(tempoContagem);
+            setFade(false);
+        } else if (!iniciarContagem && ativo) {
+            // Se iniciarContagem mudar para false, resetar
+            setAtivo(false);
+            setContador(tempoContagem);
+            setFade(false);
         }
-    }, [contador, onIniciar]);
+    }, [iniciarContagem, ativo, tempoContagem]);
+
+    // Controlar a contagem regressiva
+    useEffect(() => {
+        if (!ativo || contador <= 0) return;
+
+        const timer = setTimeout(() => {
+            setContador(c => {
+                if (c <= 1) {
+                    console.log("AlertaInicioJogo: Contagem terminando");
+                    setFade(true);
+                    setTimeout(() => {
+                        if (onIniciar) {
+                            console.log("AlertaInicioJogo: Chamando onIniciar");
+                            onIniciar();
+                        }
+                        setAtivo(false);
+                    }, 800);
+                    return 0;
+                }
+                return c - 1;
+            });
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [contador, ativo, onIniciar]);
+
+    // Se não estiver ativo, não renderiza nada
+    if (!ativo) {
+        return null;
+    }
 
     return (
         <div className={`${style.alertaInicio} ${fade ? style.fadeOutZoomSoft : ""}`}>

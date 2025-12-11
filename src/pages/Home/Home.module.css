@@ -7,7 +7,7 @@
     align-items: center;
     width: 100%;
     min-height: 94vh;
-    padding: 80px 20px 40px; /* Adicionado padding top para não ficar atrás do header */
+    padding: 0px 20px 40px; /* Adicionado padding top para não ficar atrás do header */
     gap: 30px;
     box-sizing: border-box;
     overflow-y: auto; /* Permite scroll vertical se necessário */

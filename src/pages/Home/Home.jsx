@@ -68,7 +68,7 @@ export default function Home() {
             <Header/>
             
             <div className={styles.container}>
-                <img src={Logo} alt="Logo" height={100} width={100} />
+                <img src={Logo} alt="Logo" height={150} width={150} />
                 <h1>Olá usuário!</h1>
                 
                 {/* Opção para mudar layout (opcional) */}

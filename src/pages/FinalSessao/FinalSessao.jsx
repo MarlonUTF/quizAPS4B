@@ -11,16 +11,16 @@ import Logo from "../../../public/logo.png";
 export default function FinalSessaoPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const sessionId = searchParams.get("session");
   const sessionPlayerId = searchParams.get("player");
-  
+
   const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-  
+
   const [session, setSession] = useState(null);
   const [quiz, setQuiz] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -30,15 +30,43 @@ export default function FinalSessaoPage() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [questionsData, setQuestionsData] = useState([]);
 
+  // ---------------------------
+  // 🔥 ATUALIZA AUTO - REALTIME
+  // ---------------------------
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const channel = supabase
+      .channel(`final_sessao_${sessionId}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "player_answer",
+        filter: `session_id=eq.${sessionId}`,
+      }, () => {
+        loadSessionData();
+      })
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "session_player",
+        filter: `session_id=eq.${sessionId}`,
+      }, () => {
+        loadSessionData();
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [sessionId]);
+
   useEffect(() => {
     if (!sessionId) {
       navigate("/telaloginjogador");
       return;
     }
-    
+
     loadSessionData();
-    
-    // Atualizar tamanho da janela para confetti
+
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
@@ -48,7 +76,6 @@ export default function FinalSessaoPage() {
 
     window.addEventListener("resize", handleResize);
 
-    // Manter confetti por 10 segundos
     const timer = setTimeout(() => {
       setShowConfetti(false);
     }, 10000);
@@ -59,12 +86,15 @@ export default function FinalSessaoPage() {
     };
   }, [sessionId, navigate]);
 
+
+  // ---------------------------
+  // 🔥 CARREGA TUDO DO BANCO
+  // ---------------------------
   const loadSessionData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // 1. Carregar sessão com quiz
       const { data: sessionData, error: sessionError } = await supabase
         .from("session")
         .select(`
@@ -75,10 +105,10 @@ export default function FinalSessaoPage() {
         .single();
 
       if (sessionError) throw new Error("Sessão não encontrada");
+
       setSession(sessionData);
       setQuiz(sessionData.quiz);
 
-      // 2. Carregar todas as perguntas do quiz com as opções corretas
       const { data: quizQuestions, error: questionsError } = await supabase
         .from("quiz_question")
         .select(`
@@ -91,11 +121,12 @@ export default function FinalSessaoPage() {
         .eq("quiz_id", sessionData.quiz_id);
 
       if (questionsError) throw new Error("Erro ao carregar perguntas");
-      
-      // Mapear quiz_question_id para a opção correta
+
       const correctAnswersMap = {};
-      quizQuestions.forEach(qq => {
-        const correctOption = qq.question?.options?.find(opt => opt.is_correct === true);
+      quizQuestions.forEach((qq) => {
+        const correctOption = qq.question?.options?.find(
+          (opt) => opt.is_correct === true
+        );
         if (correctOption) {
           correctAnswersMap[qq.id] = correctOption.id;
         }
@@ -104,7 +135,6 @@ export default function FinalSessaoPage() {
       setTotalQuestions(quizQuestions.length);
       setQuestionsData(quizQuestions);
 
-      // 3. Carregar jogadores da sessão
       const { data: playersData, error: playersError } = await supabase
         .from("session_player")
         .select("*")
@@ -112,17 +142,16 @@ export default function FinalSessaoPage() {
         .order("created_at", { ascending: true });
 
       if (playersError) throw new Error("Erro ao carregar jogadores");
-      
-      // 4. Se houver sessionPlayerId, carregar jogador atual
+
       if (sessionPlayerId) {
-        const currentPlayerData = playersData.find(p => p.id === sessionPlayerId);
+        const currentPlayerData = playersData.find(
+          (p) => p.id === sessionPlayerId
+        );
         setCurrentPlayer(currentPlayerData);
       }
 
-      // 5. Calcular pontuação de cada jogador
       const playersWithScores = await Promise.all(
         playersData.map(async (player) => {
-          // Buscar respostas do jogador
           const { data: playerAnswers, error: answersError } = await supabase
             .from("player_answer")
             .select("quiz_question_id, option_id")
@@ -130,23 +159,26 @@ export default function FinalSessaoPage() {
             .eq("session_id", sessionId);
 
           if (answersError) {
-            console.error("Erro ao carregar respostas do jogador:", player.nickname, answersError);
-            return { 
+            console.error(
+              "Erro ao carregar respostas do jogador:",
+              player.nickname,
+              answersError
+            );
+            return {
               nome: player.nickname,
               emoji: player.emoji,
               cor: player.color,
               acertos: 0,
               total: quizQuestions.length,
               sessionPlayerId: player.id,
-              isCurrentPlayer: player.id === sessionPlayerId
+              isCurrentPlayer: player.id === sessionPlayerId,
             };
           }
 
-          // Contar respostas corretas comparando com o mapa de respostas corretas
           let correctCount = 0;
-          
+
           if (playerAnswers && playerAnswers.length > 0) {
-            playerAnswers.forEach(answer => {
+            playerAnswers.forEach((answer) => {
               const correctOptionId = correctAnswersMap[answer.quiz_question_id];
               if (correctOptionId && answer.option_id === correctOptionId) {
                 correctCount++;
@@ -161,30 +193,46 @@ export default function FinalSessaoPage() {
             acertos: correctCount,
             total: quizQuestions.length,
             sessionPlayerId: player.id,
-            isCurrentPlayer: player.id === sessionPlayerId
+            isCurrentPlayer: player.id === sessionPlayerId,
           };
         })
       );
 
-      // Ordenar por acertos (maior para menor)
+      // ============ TRECHO MODIFICADO - INÍCIO ============
       const sortedPlayers = playersWithScores.sort((a, b) => {
-        // Ordenar por acertos, depois por ordem de chegada (mais antigo primeiro)
+        // Ordena por acertos
         if (b.acertos !== a.acertos) {
           return b.acertos - a.acertos;
         }
-        // Se empate em acertos, ordenar por ordem de criação
-        const aPlayer = playersData.find(p => p.id === a.sessionPlayerId);
-        const bPlayer = playersData.find(p => p.id === b.sessionPlayerId);
+
+        // Desempate por ordem de criação (quem entrou antes vence)
+        const aPlayer = playersData.find((p) => p.id === a.sessionPlayerId);
+        const bPlayer = playersData.find((p) => p.id === b.sessionPlayerId);
         return new Date(aPlayer.created_at) - new Date(bPlayer.created_at);
       });
-      
-      // Adicionar posição (ranking)
-      const rankedPlayers = sortedPlayers.map((player, index) => ({
-        ...player,
-        posicao: index + 1
-      }));
+
+      // ---------- TRATAR EMPATES ----------
+      let lastScore = null;
+      let lastRank = 0;
+      let count = 0;
+
+      const rankedPlayers = sortedPlayers.map((player) => {
+        count++;
+
+        if (player.acertos !== lastScore) {
+          // Novo valor → atualizar rank
+          lastRank = count;
+          lastScore = player.acertos;
+        }
+
+        return {
+          ...player,
+          posicao: lastRank, // Jogadores empatados ficam com o mesmo rank
+        };
+      });
 
       setPlayers(rankedPlayers);
+      // ============ TRECHO MODIFICADO - FIM ============
 
     } catch (err) {
       console.error("Erro ao carregar dados da sessão:", err);
@@ -194,15 +242,7 @@ export default function FinalSessaoPage() {
     }
   };
 
-  const handleBackToHome = () => {
-    navigate("/inicio");
-  };
-
-  const handleRestartQuiz = () => {
-    if (sessionId && sessionPlayerId) {
-      navigate(`/pergunta?session=${sessionId}&player=${sessionPlayerId}`);
-    }
-  };
+  const handleBackToHome = () => navigate("/inicio");
 
   if (isLoading) {
     return (
@@ -224,16 +264,10 @@ export default function FinalSessaoPage() {
           <h3>⚠️ Erro ao carregar resultados</h3>
           <p className={styles.errorMessage}>{error}</p>
           <div className={styles.errorActions}>
-            <button
-              onClick={() => navigate("/inicio")}
-              className={styles.backButton}
-            >
+            <button onClick={() => navigate("/inicio")} className={styles.backButton}>
               Voltar ao início
             </button>
-            <button
-              onClick={loadSessionData}
-              className={styles.retryButton}
-            >
+            <button onClick={loadSessionData} className={styles.retryButton}>
               Tentar novamente
             </button>
           </div>
@@ -242,14 +276,13 @@ export default function FinalSessaoPage() {
     );
   }
 
-  // Fallback para dados se não houver jogadores
-  const displayPlayers = players.length > 0 ? players : [
-    { nome: "Nenhum jogador", emoji: "😔", cor: "#CCCCCC", acertos: 0, posicao: 1, total: totalQuestions }
-  ];
+  const displayPlayers =
+    players.length > 0
+      ? players
+      : [{ nome: "Nenhum jogador", emoji: "😔", cor: "#CCC", acertos: 0, posicao: 1 }];
 
   return (
     <div className={styles.pageContainer}>
-      {/* Confetti */}
       {showConfetti && (
         <Confetti
           width={windowSize.width}
@@ -258,44 +291,15 @@ export default function FinalSessaoPage() {
           gravity={0.05}
           wind={0.005}
           recycle={false}
-          initialVelocityX={2}
-          initialVelocityY={5}
-          colors={[
-            "#593C8F",
-            "#BEBEED",
-            "#F7DC6F",
-            "#85C1E9",
-            "#D7BDE2",
-            "#FF6B6B",
-            "#4ECDC4",
-            "#FFD166",
-          ]}
-          style={{ position: "fixed", top: 0, left: 0, zIndex: 1000 }}
         />
       )}
 
       <Header />
-      
-      {/* Botão Voltar ao Início */}
-      <button 
-        className={styles.backToHomeButton}
-        onClick={handleBackToHome}
-        aria-label="Voltar ao início"
-      >
+
+      <button className={styles.backToHomeButton} onClick={handleBackToHome}>
         <span className={styles.buttonText}>Voltar ao Início</span>
       </button>
 
-      {/* Botão Reiniciar Quiz (apenas se for o jogador atual) */}
-      {sessionPlayerId && (
-        <button 
-          className={styles.restartButton}
-          onClick={handleRestartQuiz}
-          aria-label="Tentar novamente"
-        >
-          <span className={styles.buttonText}>Tentar Novamente</span>
-        </button>
-      )}
-      
       <div className={styles.titulo}>
         <h1 className={styles.textoTitulo}>Ranking Final</h1>
         <img src={Logo} className={styles.logo} alt="Logo" />
@@ -304,21 +308,12 @@ export default function FinalSessaoPage() {
       <div className={styles.contentMain}>
         <div className={styles.resultsWrapper}>
           <div className={styles.resultsContainer}>
-            {/* Seção da Tabela de Classificação */}
             <div className={styles.tableSection}>
-              <FinalSessao
-                jogadores={displayPlayers}
-                titulo="Classificação"
-                mostrarDadosExemplo={false}
-              />
+              <FinalSessao jogadores={displayPlayers} titulo="Classificação" />
             </div>
 
-            {/* Seção do Gráfico */}
             <div className={styles.chartSection}>
-              <VerticalBarChart
-                jogadores={displayPlayers}
-                titulo="Performance da Partida"
-              />
+              <VerticalBarChart jogadores={displayPlayers} titulo="Performance da Partida" />
             </div>
           </div>
         </div>

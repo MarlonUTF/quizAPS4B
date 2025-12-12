@@ -187,7 +187,27 @@ export default function Pergunta() {
         if (insertError) throw insertError;
       }
 
-      // Redirecionar para a página finalsessao
+      // Calcular pontuação e atualizar o jogador
+      let score = 0;
+      questions.forEach(question => {
+        // Encontrar a opção correta para esta pergunta
+        const correctOption = question.options.find(opt => opt.is_correct);
+        const playerAnswer = selectedAnswers[question.quizQuestionId];
+        
+        if (correctOption && playerAnswer === correctOption.id) {
+          score++;
+        }
+      });
+
+      // Atualizar pontuação do jogador no banco de dados
+      const { error: updateError } = await supabase
+        .from('session_player')
+        .update({ correct_answers: score })
+        .eq('id', sessionPlayerId);
+
+      if (updateError) throw updateError;
+
+      // Redirecionar diretamente para a página finalsessao
       navigate(`/finalsessao?session=${sessionId}&player=${sessionPlayerId}`);
 
     } catch (err) {

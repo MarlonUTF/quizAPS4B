@@ -27,6 +27,8 @@
   margin: 0 auto;
 }
 
+
+
 /* ============================
    Título
 ================================*/
@@ -129,7 +131,7 @@
 }
 
 .quizId {
-  background-color: #4caf50;
+  background-color: #313191;
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -373,24 +375,47 @@
   border-top: 2px solid #f0f0f0;
 }
 
-/* ============================
-   Opções da pergunta
-================================*/
 
+/* ============================
+   Indicador de cor da opção
+================================*/
+.optionColorIndicator {
+  width: 12px;
+  height: 40px;
+  border-radius: 6px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* ============================
+   Contador de opções
+================================*/
+.optionsCounter {
+  margin-bottom: 15px;
+  text-align: right;
+}
+
+.counterText {
+  background-color: #644dc4;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* ============================
+   Grid de opções fixo para 4 opções
+================================*/
 .optionsGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 20px;
 }
 
-@media (max-width: 768px) {
-  .optionsGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Cada caixa de opção */
+/* Cada caixa de opção com altura fixa */
 .optionBox {
   padding: 16px;
   border-radius: 12px;
@@ -399,12 +424,102 @@
   font-weight: bold;
   text-align: center;
   position: relative;
-  min-height: 80px;
+  min-height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  word-break: break-word;
 }
+
+/* Garantir que as cores sejam diferentes */
+.optionBox:nth-child(1) { background-color: #cf3f52 !important; }
+.optionBox:nth-child(2) { background-color: #6951a1 !important; }
+.optionBox:nth-child(3) { background-color: #3fa09b !important; }
+.optionBox:nth-child(4) { background-color: #313191 !important; }
+
+.optionBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================
+   Estilo das opções no formulário
+================================*/
+.optionRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.optionInput {
+  flex: 1;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 2px solid #d7b3ad;
+  font-size: 1.1rem;
+  font-family: 'Inter', sans-serif;
+  border-left: 6px solid;
+  background-color: #ffece8;
+  transition: all 0.2s;
+}
+
+/* Bordas coloridas para cada opção */
+.optionInput[style*="#cf3f52"] { border-left-color: #cf3f52; }
+.optionInput[style*="#6951a1"] { border-left-color: #6951a1; }
+.optionInput[style*="#3fa09b"] { border-left-color: #3fa09b; }
+.optionInput[style*="#313191"] { border-left-color: #313191; }
+
+.optionInput:focus {
+  outline: none;
+  border-color: #b18b84;
+  transform: translateY(-1px);
+}
+
+/* ============================
+   Responsividade
+================================*/
+@media (max-width: 768px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .optionBox {
+    min-height: 80px;
+  }
+  
+  .optionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .optionColorIndicator {
+    width: 100%;
+    height: 6px;
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .optionBox {
+    font-size: 1rem;
+    min-height: 70px;
+  }
+  
+  .actionBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
 
 .optionBox:hover {
   transform: translateY(-2px);
@@ -458,24 +573,8 @@
   color: #333;
 }
 
-.optionRow {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  align-items: center;
-}
 
-.optionInput {
-  flex: 1;
-  padding: 12px 15px;
-  border-radius: 12px;
-  border: 2px solid #d7b3ad;
-  font-size: 1.1rem;
-  font-family: 'Inter', sans-serif;
-  border-left: 6px solid #ccc;
-  background-color: #ffece8;
-  transition: all 0.2s;
-}
+
 
 .optionInput:focus {
   outline: none;
@@ -553,7 +652,7 @@
 }
 
 .saveButton {
-  background-color: #4caf50;
+  background-color: #313191;
   color: white;
   border: none;
   border-radius: 20px;
@@ -726,4 +825,149 @@
   .questionActions {
     align-self: flex-end;
   }
+}
+/* Container geral do banco */
+.bancoContainer {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #ffe2dc;
+  border-radius: 16px;
+  border: 2px solid #d7b3ad;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  animation: fadeIn 0.4s ease;
+}
+
+/* Header com botão fechar */
+.bancoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.closeBancoBtn {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 4px 10px;
+}
+
+/* Lista do banco */
+.bancoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Card de cada pergunta */
+.bancoCard {
+  background-color: #fff8f6;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #e3c5c0;
+  transition: 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.bancoCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* Opções dentro do card */
+.bancoOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.bancoOption {
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Badge ✔ */
+.correctBadge {
+  font-size: 1.2rem;
+  margin-left: 10px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+/* Botão de adicionar pergunta */
+.addButton {
+  background-color: #644dc4;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.addButton:hover {
+  background-color: #553cb3;
+  transform: translateY(-2px);
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .bancoCard {
+    padding: 14px;
+  }
+
+  .addButton {
+    width: 100%;
+  }
+}
+
+/* Área onde aparecem os cards do banco */
+.bancoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  /* AQUI LIMITA A ALTURA */
+  max-height: 400px;
+  overflow-y: auto;
+
+  padding-right: 8px; /* evita o texto colar na barra */
+}
+
+/* Scroll estilizado */
+.bancoLista::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bancoLista::-webkit-scrollbar-thumb {
+  background: #c9b0ac;
+  border-radius: 8px;
+}
+
+.bancoLista::-webkit-scrollbar-track {
+  background: #f3ddd9;
+}
+
+.filtroCategoria {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+}
+
+.selectCategoria {
+  padding: 10px 14px;
+  background: #fff;
+  border: 2px solid #d7b3ad;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  outline: none;
 }

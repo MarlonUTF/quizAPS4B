@@ -24,9 +24,15 @@ export default function TelaLoginAdm() {
             return
         }
 
-        console.log("Usuário logado:", data)
+        const user = data.user
 
-        window.location.href = "/dashboard" 
+        if (user) {
+            localStorage.setItem("user_id", user.id)
+        }
+
+        console.log("Usuário logado:", user)
+
+        window.location.href = "/";
     }
 
     return (

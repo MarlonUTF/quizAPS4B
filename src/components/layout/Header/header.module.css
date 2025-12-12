@@ -1,6 +1,152 @@
 .header {
-    height: 8vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #D9D9D9; /* Cinza claro */
+    border-bottom: 1px solid #e0e0e0;
     width: 100%;
+    min-height: 70px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-    background-color: #D9D9D9;
+.left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+/* Se tiver colorBar e título */
+.left.hasColorBar {
+    gap: 0;
+}
+
+.colorBar {
+    width: 6px;
+    height: 40px;
+    border-radius: 3px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.titulo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #424242; /* Cinza escuro */
+    margin: 0;
+}
+
+/* Player info - só aparece se tiver dados */
+.playerBox {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+    margin-left: auto; /* Empurra para a direita */
+}
+
+.playerBox:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.emoji {
+    font-size: 1.5rem;
+}
+
+.nome {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #424242;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Estado vazio - sem conteúdo */
+.header.empty {
+    justify-content: center;
+    padding: 1rem;
+}
+
+.header.empty .left {
+    justify-content: center;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem 1rem;
+        min-height: 60px;
+    }
+    
+    .titulo {
+        font-size: 1.2rem;
+    }
+    
+    .playerBox {
+        padding: 0.4rem 1rem;
+    }
+    
+    .emoji {
+        font-size: 1.2rem;
+    }
+    
+    .nome {
+        font-size: 0.9rem;
+        max-width: 120px;
+    }
+    
+    .colorBar {
+        height: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .titulo {
+        font-size: 1.1rem;
+    }
+    
+    .playerBox {
+        padding: 0.3rem 0.75rem;
+    }
+    
+    .nome {
+        max-width: 100px;
+    }
+    
+    .colorBar {
+        width: 5px;
+        height: 30px;
+        margin-right: 8px;
+    }
+}
+
+/* Animação sutil */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.playerBox {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.homeBtn {
+    color: white;
+    font-weight: bolder;
 }

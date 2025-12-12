@@ -9,7 +9,12 @@ export default function CreateQuiz() {
   const [quizName, setQuizName] = useState("");
   const [quizDescription, setQuizDescription] = useState("");
   const [quizId, setQuizId] = useState(null);
+
   const [questionText, setQuestionText] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(""); // categoria nova pergunta
+
+  const [categories, setCategories] = useState([]); // categorias do banco
+  const [categoriaFiltro, setCategoriaFiltro] = useState(""); // filtro do banco
 
   const optionColors = ["#cf3f52", "#6951a1", "#3fa09b", "#313191"];
 
@@ -20,29 +25,51 @@ export default function CreateQuiz() {
 
   const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
   const [editingQuestionText, setEditingQuestionText] = useState("");
+  const [editingCategory, setEditingCategory] = useState(""); // categoria no modo edição
   const [editingOptions, setEditingOptions] = useState([]);
+
   const [questions, setQuestions] = useState([]);
   const [userId, setUserId] = useState(null);
   const editQuizId = localStorage.getItem("editQuizId");
 
-  // banco
+  // Banco de perguntas
   const [bancoPerguntas, setBancoPerguntas] = useState([]);
   const [mostrarBanco, setMostrarBanco] = useState(false);
   const [carregandoBanco, setCarregandoBanco] = useState(false);
 
+  /* -------------------------------------------------------------------------- */
+  /*                       🔹 1) CARREGA USUÁRIO E CATEGORIAS                   */
+  /* -------------------------------------------------------------------------- */
+
   useEffect(() => {
     // pega usuário
     supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        setUserId(data.user.id);
-      }
+      if (data?.user) setUserId(data.user.id);
     });
 
-    if (editQuizId) {
-      carregarQuizParaEdicao(editQuizId);
-    }
+    carregarCategorias();
+
+    if (editQuizId) carregarQuizParaEdicao(editQuizId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function carregarCategorias() {
+    const { data, error } = await supabase
+      .from("category")
+      .select("id, category_name")
+      .order("category_name");
+
+    if (error) {
+      console.error("Erro ao carregar categorias:", error);
+      setCategories([]);
+    } else {
+      setCategories(data || []);
+    }
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                            🔹 BANCO DE PERGUNTAS                           */
+  /* -------------------------------------------------------------------------- */
 
   async function carregarBancoPerguntas() {
     // toggle: se já mostrando, apenas fecha
@@ -53,10 +80,13 @@ export default function CreateQuiz() {
 
     setMostrarBanco(true);
     setCarregandoBanco(true);
+
     try {
+      // buscamos perguntas com category_id
       const { data: questionsData, error: qErr } = await supabase
         .from("question")
-        .select("*");
+        .select("id, question_text, category_id")
+        .order("question_text", { ascending: true });
 
       if (qErr) throw qErr;
 
@@ -66,7 +96,7 @@ export default function CreateQuiz() {
         return;
       }
 
-      const ids = questionsData.map(q => q.id);
+      const ids = questionsData.map((q) => q.id);
 
       const { data: optionsData = [], error: oErr } = await supabase
         .from("option")
@@ -75,22 +105,25 @@ export default function CreateQuiz() {
 
       if (oErr) throw oErr;
 
-      const montado = questionsData.map(q => ({
+      const montado = questionsData.map((q) => ({
         id: q.id,
         text: q.question_text,
-        options: (optionsData
-          .filter(op => op.question_id === q.id)
-          .map((op, idx) => ({
-            option_text: op.option_text,
-            is_correct: op.is_correct,
-            color: optionColors[idx % optionColors.length]
-          })) ) || []
+        category_id: q.category_id,
+        options:
+          optionsData
+            .filter((op) => op.question_id === q.id)
+            .map((op, idx) => ({
+              option_text: op.option_text,
+              is_correct: op.is_correct,
+              color: optionColors[idx % optionColors.length],
+            })) || [],
       }));
 
       setBancoPerguntas(montado);
     } catch (err) {
       console.error("Erro ao carregar banco:", err);
-      alert("Erro ao carregar banco de perguntas: " + (err.message || err));
+      alert("Erro ao carregar banco de perguntas");
+      setBancoPerguntas([]);
     } finally {
       setCarregandoBanco(false);
     }
@@ -121,8 +154,12 @@ export default function CreateQuiz() {
     }
 
     setQuestions(prev => [...prev, question]);
-    alert("Pergunta adicionada ao quiz!");
+    alert("Pergunta adicionada!");
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                           🔹 CARREGAR QUIZ PARA EDIÇÃO                     */
+  /* -------------------------------------------------------------------------- */
 
   async function carregarQuizParaEdicao(id) {
     try {
@@ -169,6 +206,7 @@ export default function CreateQuiz() {
       const montado = questionsData.map(q => ({
         id: q.id,
         text: q.question_text,
+        category_id: q.category_id,
         options: optionsData
           .filter(op => op.question_id === q.id)
           .map((op, idx) => ({
@@ -184,6 +222,10 @@ export default function CreateQuiz() {
       alert("Erro ao carregar quiz: " + (err.message || err));
     }
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                           🔹 CRIAR QUIZ                                    */
+  /* -------------------------------------------------------------------------- */
 
   const criarQuiz = async () => {
     if (editQuizId) {
@@ -210,80 +252,56 @@ export default function CreateQuiz() {
     alert("Quiz criado com sucesso!");
   };
 
-  const marcarComoCorreta = (index, isEditing = false) => {
-    if (isEditing) {
-      const novas = editingOptions.map((o, i) => ({
-        ...o,
-        is_correct: i === index,
-      }));
-      setEditingOptions(novas);
-    } else {
-      const novas = options.map((o, i) => ({
-        ...o,
-        is_correct: i === index,
-      }));
-      setOptions(novas);
-    }
-  };
-
-  const adicionarOpcao = (isEditing = false) => {
-    const target = isEditing ? editingOptions : options;
-    const setter = isEditing ? setEditingOptions : setOptions;
-
-    if (target.length < 4) {
-      const newColor = optionColors[target.length % optionColors.length];
-      setter([...target, { option_text: "", is_correct: false, color: newColor }]);
-    }
-  };
-
-  const removerOpcao = (index, isEditing = false) => {
-    const target = isEditing ? editingOptions : options;
-    const setter = isEditing ? setEditingOptions : setOptions;
-
-    if (target.length > 2) {
-      const novas = target.filter((_, i) => i !== index);
-      const recolor = novas.map((opt, idx) => ({
-        ...opt,
-        color: optionColors[idx % optionColors.length]
-      }));
-      setter(recolor);
-    }
-  };
+  /* -------------------------------------------------------------------------- */
+  /*                       🔹 SALVAR NOVA PERGUNTA NO BANCO                     */
+  /* -------------------------------------------------------------------------- */
 
   const salvarPerguntaNoBanco = async () => {
     if (!quizId) {
       alert("Crie o quiz primeiro.");
       return;
     }
+    if (!selectedCategory) {
+      alert("Selecione uma categoria.");
+      return;
+    }
 
     const { data: qData, error: qErr } = await supabase
       .from("question")
-      .insert({ question_text: questionText })
+      .insert({
+        question_text: questionText,
+        category_id: selectedCategory
+      })
       .select()
       .single();
 
-    if (qErr) return alert(qErr.message);
+    if (qErr) {
+      alert(qErr.message);
+      return;
+    }
 
     await supabase.from("quiz_question").insert({
       quiz_id: quizId,
       question_id: qData.id
     });
 
-    const payload = options.map(opt => ({
-      question_id: qData.id,
-      option_text: opt.option_text,
-      is_correct: opt.is_correct
-    }));
-
-    await supabase.from("option").insert(payload);
+    await supabase.from("option").insert(
+      options.map(opt => ({
+        question_id: qData.id,
+        option_text: opt.option_text,
+        is_correct: opt.is_correct
+      }))
+    );
 
     setQuestions(prev => [...prev, {
       id: qData.id,
       text: questionText,
+      category_id: selectedCategory,
       options
     }]);
 
     setQuestionText("");
+    setSelectedCategory("");
     setOptions([
       { option_text: "", is_correct: false, color: optionColors[0] },
       { option_text: "", is_correct: false, color: optionColors[1] },
@@ -292,9 +310,14 @@ export default function CreateQuiz() {
     alert("Pergunta salva!");
   };
 
+  /* -------------------------------------------------------------------------- */
+  /*                           🔹 EDIÇÃO DE PERGUNTA                            */
+  /* -------------------------------------------------------------------------- */
+
   const abrirEdicaoPergunta = (i) => {
     setEditingQuestionIndex(i);
     setEditingQuestionText(questions[i].text);
+    setEditingCategory(questions[i].category_id || "");
     setEditingOptions([...questions[i].options]);
   };
 
@@ -302,7 +325,10 @@ export default function CreateQuiz() {
     const q = questions[editingQuestionIndex];
 
     await supabase.from("question")
-      .update({ question_text: editingQuestionText })
+      .update({
+        question_text: editingQuestionText,
+        category_id: editingCategory
+      })
       .eq("id", q.id);
 
     await supabase.from("option").delete().eq("question_id", q.id);
@@ -319,6 +345,7 @@ export default function CreateQuiz() {
     novas[editingQuestionIndex] = {
       ...q,
       text: editingQuestionText,
+      category_id: editingCategory,
       options: editingOptions
     };
 
@@ -329,6 +356,10 @@ export default function CreateQuiz() {
   const cancelarEdicao = () => {
     setEditingQuestionIndex(null);
   };
+
+  /* -------------------------------------------------------------------------- */
+  /*                            🔹 EXCLUIR PERGUNTA                             */
+  /* -------------------------------------------------------------------------- */
 
   const excluirPergunta = async (index) => {
     const q = questions[index];
@@ -341,12 +372,16 @@ export default function CreateQuiz() {
   };
 
   const adicionarNovaPergunta = () => {
-    if (editingQuestionIndex !== null) {
-      cancelarEdicao();
-    }
+    if (editingQuestionIndex !== null) cancelarEdicao();
 
-    document.getElementById("nova-pergunta-form")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("nova-pergunta-form")?.scrollIntoView({
+      behavior: "smooth"
+    });
   };
+
+  /* -------------------------------------------------------------------------- */
+  /*                                🔹 RENDER                                    */
+  /* -------------------------------------------------------------------------- */
 
   return (
     <div>
@@ -360,6 +395,7 @@ export default function CreateQuiz() {
             {editQuizId ? "Editar Quiz" : "New sala"}
           </h1>
 
+          {/* Form de criação */}
           <div className={styles.formGroup}>
             <label className={styles.label}>Sala:</label>
             <input
@@ -395,6 +431,7 @@ export default function CreateQuiz() {
 
           <div className={styles.separator}></div>
 
+          {/* NOVA PERGUNTA */}
           <div id="nova-pergunta-form" className={styles.questionForm}>
             <h3>Adicionar Nova Pergunta</h3>
 
@@ -408,6 +445,24 @@ export default function CreateQuiz() {
               />
             </div>
 
+            {/* SELECT DE CATEGORIAS */}
+            <div className={styles.formGroup}>
+              <label>Categoria:</label>
+              <select
+                className={styles.input}
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">Selecione...</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.category_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* opções */}
             <div className={styles.optionsContainer}>
               <h4>Opções (máximo 4):</h4>
 
@@ -419,12 +474,16 @@ export default function CreateQuiz() {
 
               {options.map((opt, i) => (
                 <div key={i} className={styles.optionRow}>
-                  <div className={styles.optionColorIndicator} style={{ backgroundColor: opt.color }}></div>
+                  <div
+                    className={styles.optionColorIndicator}
+                    style={{ backgroundColor: opt.color }}
+                  ></div>
+
                   <input
                     className={styles.optionInput}
                     type="text"
-                    placeholder={`Opção ${i + 1}`}
                     value={opt.option_text}
+                    placeholder={`Opção ${i + 1}`}
                     onChange={(e) => {
                       const novas = [...options];
                       novas[i].option_text = e.target.value;
@@ -432,19 +491,34 @@ export default function CreateQuiz() {
                     }}
                     style={{ borderLeftColor: opt.color }}
                   />
+
                   <button
-                    onClick={() => marcarComoCorreta(i)}
+                    onClick={() => {
+                      const novas = options.map((o, idx) => ({
+                        ...o,
+                        is_correct: idx === i
+                      }));
+                      setOptions(novas);
+                    }}
                     className={styles.correctButton}
                     style={{
                       background: opt.is_correct ? opt.color : "#888",
                     }}
                   >
-                    {opt.is_correct ? "✔ Correta" : "Marcar correta"}
+                    {opt.is_correct ? "✔ Correta" : "Marcar"}
                   </button>
 
                   {options.length > 2 && (
                     <button
-                      onClick={() => removerOpcao(i)}
+                      onClick={() => {
+                        const novas = options
+                          .filter((_, idx) => idx !== i)
+                          .map((o, idx) => ({
+                            ...o,
+                            color: optionColors[idx]
+                          }));
+                        setOptions(novas);
+                      }}
                       className={styles.removeButton}
                     >
                       ×
@@ -455,10 +529,20 @@ export default function CreateQuiz() {
 
               <button
                 className={styles.actionBtn}
-                onClick={() => adicionarOpcao()}
+                onClick={() => {
+                  if (options.length < 4)
+                    setOptions([
+                      ...options,
+                      {
+                        option_text: "",
+                        is_correct: false,
+                        color: optionColors[options.length]
+                      }
+                    ]);
+                }}
                 disabled={options.length >= 4}
               >
-                + Adicionar opção ({4 - options.length} restantes)
+                + Adicionar opção
               </button>
             </div>
 
@@ -466,33 +550,29 @@ export default function CreateQuiz() {
               <button
                 className={styles.primaryButton}
                 onClick={salvarPerguntaNoBanco}
-                disabled={!questionText.trim() || options.some(opt => !opt.option_text.trim())}
+                disabled={
+                  !questionText.trim() ||
+                  !selectedCategory ||
+                  options.some(op => !op.option_text.trim())
+                }
               >
                 Salvar Pergunta
               </button>
             </div>
-
-            {!quizId && (
-              <div className={styles.quizWarning}>
-                <p>Você precisa criar o quiz primeiro para salvar perguntas.</p>
-              </div>
-            )}
           </div>
 
+          {/* LISTA DE PERGUNTAS */}
           {quizId && (
             <>
               <div className={styles.actionsRow}>
                 <button
                   className={styles.iconButton}
                   onClick={adicionarNovaPergunta}
-                  title="Adicionar nova pergunta"
                 >
                   <span className={styles.plusIcon}>+</span>
                 </button>
 
-                <button className={styles.actionBtn}>
-                  Todas
-                </button>
+                <button className={styles.actionBtn}>Todas</button>
 
                 <button
                   className={styles.actionBtn}
@@ -505,12 +585,10 @@ export default function CreateQuiz() {
               {questions.map((question, index) => (
                 <div
                   key={question.id}
-                  className={`${styles.questionCard} ${editingQuestionIndex === index ? styles.editing : ''}`}
+                  className={`${styles.questionCard} ${editingQuestionIndex === index ? styles.editing : ""}`}
                 >
                   <div className={styles.questionHeaderRow}>
-                    <h3 className={styles.questionHeader}>
-                      Pergunta {index + 1}
-                    </h3>
+                    <h3 className={styles.questionHeader}>Pergunta {index + 1}</h3>
                     <div className={styles.questionActions}>
                       <button
                         className={styles.expandButton}
@@ -537,29 +615,37 @@ export default function CreateQuiz() {
                       <div className={styles.formGroup}>
                         <textarea
                           className={styles.input}
-                          placeholder="Texto da pergunta"
                           value={editingQuestionText}
                           onChange={(e) => setEditingQuestionText(e.target.value)}
                           rows="3"
                         />
                       </div>
 
-                      <div className={styles.optionsContainer}>
-                        <h4>Opções (máximo 4):</h4>
+                      {/* SELECT DE CATEGORIA NO MODO EDIÇÃO */}
+                      <div className={styles.formGroup}>
+                        <label>Categoria:</label>
+                        <select
+                          className={styles.input}
+                          value={editingCategory}
+                          onChange={(e) => setEditingCategory(e.target.value)}
+                        >
+                          <option value="">Selecione...</option>
+                          {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.category_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                        <div className={styles.optionsCounter}>
-                          <span className={styles.counterText}>
-                            Opções: {editingOptions.length}/4
-                          </span>
-                        </div>
+                      <div className={styles.optionsContainer}>
+                        <h4>Opções:</h4>
 
                         {editingOptions.map((opt, optIndex) => (
                           <div key={optIndex} className={styles.optionRow}>
                             <div className={styles.optionColorIndicator} style={{ backgroundColor: opt.color }}></div>
                             <input
                               className={styles.optionInput}
-                              type="text"
-                              placeholder={`Opção ${optIndex + 1}`}
                               value={opt.option_text}
                               onChange={(e) => {
                                 const novas = [...editingOptions];
@@ -569,18 +655,22 @@ export default function CreateQuiz() {
                               style={{ borderLeftColor: opt.color }}
                             />
                             <button
-                              onClick={() => marcarComoCorreta(optIndex, true)}
-                              className={styles.correctButton}
-                              style={{
-                                background: opt.is_correct ? opt.color : "#888",
+                              onClick={() => {
+                                const novas = editingOptions.map((o, idx) => ({ ...o, is_correct: idx === optIndex }));
+                                setEditingOptions(novas);
                               }}
+                              className={styles.correctButton}
+                              style={{ background: opt.is_correct ? opt.color : "#888" }}
                             >
-                              {opt.is_correct ? "✔ Correta" : "Marcar correta"}
+                              {opt.is_correct ? "✔" : "Marcar"}
                             </button>
 
                             {editingOptions.length > 2 && (
                               <button
-                                onClick={() => removerOpcao(optIndex, true)}
+                                onClick={() => {
+                                  const novas = editingOptions.filter((_, idx) => idx !== optIndex).map((o, idx) => ({ ...o, color: optionColors[idx] }));
+                                  setEditingOptions(novas);
+                                }}
                                 className={styles.removeButton}
                               >
                                 ×
@@ -591,86 +681,74 @@ export default function CreateQuiz() {
 
                         <button
                           className={styles.actionBtn}
-                          onClick={() => adicionarOpcao(true)}
+                          onClick={() => setEditingOptions([...editingOptions, { option_text: "", is_correct: false, color: optionColors[editingOptions.length] }])}
                           disabled={editingOptions.length >= 4}
                         >
-                          + Adicionar opção ({4 - editingOptions.length} restantes)
+                          + Adicionar opção
                         </button>
                       </div>
 
                       <div className={styles.editActions}>
-                        <button
-                          className={styles.cancelButton}
-                          onClick={cancelarEdicao}
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          className={styles.saveButton}
-                          onClick={salvarEdicaoPergunta}
-                          disabled={!editingQuestionText.trim() || editingOptions.some(opt => !opt.option_text.trim())}
-                        >
-                          Salvar Alterações
-                        </button>
+                        <button className={styles.cancelButton} onClick={cancelarEdicao}>Cancelar</button>
+                        <button className={styles.saveButton} onClick={salvarEdicaoPergunta}>Salvar</button>
                       </div>
                     </div>
                   ) : (
                     <>
                       <p className={styles.questionText}>{question.text}</p>
 
+                      {question.category_id && (
+                        <span className={styles.categoryTag}>
+                          Categoria:{" "}
+                          {categories.find(c => String(c.id) === String(question.category_id))?.category_name}
+                        </span>
+                      )}
+
                       <div className={styles.optionsGrid}>
-                        {question.options.map((option, optIndex) => (
-                          <div
-                            key={optIndex}
-                            className={styles.optionBox}
-                            style={{ backgroundColor: option.color }}
-                          >
+                        {question.options.map((op, i) => (
+                          <div key={i} className={styles.optionBox} style={{ backgroundColor: op.color }}>
                             <div className={styles.optionContent}>
-                              {option.option_text}
-                              {option.is_correct && (
-                                <span className={styles.correctBadge}>✓</span>
-                              )}
+                              {op.option_text}
+                              {op.is_correct && <span className={styles.correctBadge}>✓</span>}
                             </div>
                           </div>
                         ))}
-                      </div>
-
-                      <div className={styles.modeContainer}>
-                        <span className={styles.modeBadge}>
-                          Múltipla escolha
-                        </span>
                       </div>
                     </>
                   )}
                 </div>
               ))}
 
+              {/* BOTÃO ADICIONAR */}
               {questions.length > 0 && (
                 <div className={styles.addQuestionSection}>
-                  <button
-                    className={styles.addQuestionButton}
-                    onClick={adicionarNovaPergunta}
-                  >
+                  <button className={styles.addQuestionButton} onClick={adicionarNovaPergunta}>
                     <span className={styles.bigPlusIcon}>+</span>
                   </button>
-                  <p className={styles.addQuestionText}>
-                    Adicionar nova pergunta
-                  </p>
+                  <p className={styles.addQuestionText}>Adicionar nova pergunta</p>
                 </div>
               )}
 
-              {/* BANCO DE PERGUNTAS – aparece embaixo como "telinha" */}
+              {/* BANCO DE PERGUNTAS (filtro + lista com scroll) */}
               {mostrarBanco && (
-                <div className={styles.bancoContainer}>
+                <div className={styles.bancoWrapper}>
                   <div className={styles.bancoHeader}>
                     <h2 className={styles.bancoTitulo}>Banco de Perguntas</h2>
-                    <button
-                      className={styles.closeBancoBtn}
-                      onClick={() => setMostrarBanco(false)}
-                      title="Fechar"
+                    <button className={styles.closeBancoBtn} onClick={() => setMostrarBanco(false)}>×</button>
+                  </div>
+
+                  {/* filtro por categoria */}
+                  <div className={styles.filtroCategoria}>
+                    <select
+                      className={styles.selectCategoria}
+                      value={categoriaFiltro}
+                      onChange={(e) => setCategoriaFiltro(e.target.value)}
                     >
-                      ×
-                    </button>
+                      <option value="">Todas as categorias</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.category_name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {carregandoBanco && <p>Carregando perguntas...</p>}
@@ -680,31 +758,33 @@ export default function CreateQuiz() {
                   )}
 
                   <div className={styles.bancoLista}>
-                    {bancoPerguntas.map((q) => (
-                      <div key={q.id} className={styles.bancoCard}>
-                        <h3 className={styles.bancoQuestion}>{q.text}</h3>
+                    {bancoPerguntas
+                      .filter(q => {
+                        if (!categoriaFiltro) return true;
+                        return String(q.category_id) === String(categoriaFiltro);
+                      })
+                      .map((q) => (
+                        <div key={q.id} className={styles.bancoCard}>
+                          <h3 className={styles.bancoQuestion}>{q.text}</h3>
 
-                        <div className={styles.bancoOptions}>
-                          {q.options.map((op, idx) => (
-                            <div
-                              key={idx}
-                              className={styles.bancoOption}
-                              style={{ backgroundColor: op.color }}
-                            >
-                              <span>{op.option_text}</span>
-                              {op.is_correct && <span className={styles.correctBadge}>✓</span>}
-                            </div>
-                          ))}
+                          <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: 8 }}>
+                            Categoria: {categories.find(c => String(c.id) === String(q.category_id))?.category_name || '—'}
+                          </div>
+
+                          <div className={styles.bancoOptions}>
+                            {q.options.map((op, idx) => (
+                              <div key={idx} className={styles.bancoOption} style={{ backgroundColor: op.color }}>
+                                <span>{op.option_text}</span>
+                                {op.is_correct && <span className={styles.correctBadge}>✓</span>}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                            <button className={styles.addButton} onClick={() => adicionarPerguntaExistente(q)}>➕ Adicionar</button>
+                          </div>
                         </div>
-
-                        <button
-                          className={styles.addButton}
-                          onClick={() => adicionarPerguntaExistente(q)}
-                        >
-                          ➕ Adicionar ao Quiz
-                        </button>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               )}

@@ -681,19 +681,6 @@ export default function InicioSessao() {
         <div className={style.modalOverlay} role="dialog" aria-modal="true">
           <div className={style.modal}>
             <h3>Configurar início do Quiz</h3>
-            <p>Defina o tempo (em segundos) para cada pergunta:</p>
-
-            <div className={style.modalInputRow}>
-              <input
-                type="number"
-                min="5"
-                step="1"
-                value={startTimeInput}
-                onChange={(e) => setStartTimeInput(e.target.value)}
-                className={style.modalInput}
-              />
-              <span>segundos</span>
-            </div>
 
             <div className={style.modalButtons}>
               <button
@@ -711,7 +698,7 @@ export default function InicioSessao() {
               >
                 {starting
                   ? "Iniciando..."
-                  : `Iniciar Quiz (${startTimeInput}s)`}
+                  : `Iniciar Quiz`}
               </button>
             </div>
 

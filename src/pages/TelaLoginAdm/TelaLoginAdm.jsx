@@ -32,7 +32,7 @@ export default function TelaLoginAdm() {
 
         console.log("Usuário logado:", user)
 
-        window.location.href = "/";
+        window.location.href = "/inicio";
     }
 
     return (

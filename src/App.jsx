@@ -16,9 +16,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/inicio" element={<Home />} />
         <Route path="/sessao" element={<InicioSessao />} />
-        <Route path="/inicio" element={<TelaInicial />} />
+        <Route path="/" element={<TelaInicial />} />
         <Route path="/criarconta" element={<CriarConta/>} />
         <Route path="/telaloginjogador" element={<TelaLoginJogador />} />
         <Route path="/telaloginadm" element={<TelaLoginAdm/>} />

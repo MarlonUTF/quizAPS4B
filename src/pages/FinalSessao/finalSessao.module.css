@@ -317,3 +317,332 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 🔵 Estilos para a nova seção de detalhamento */
+
+.playerAnswersSection {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+}
+
+.sectionHeader {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.sectionTitle {
+  font-size: 1.8rem;
+  color: #2d3436;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.scorePercentage {
+  font-size: 1.2rem;
+  color: #636e72;
+  font-weight: normal;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+  margin-left: 1rem;
+}
+
+.answersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.questionCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.questionCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.questionCard.correctQuestion {
+  border-color: #4CAF50;
+  border-left: 6px solid #4CAF50;
+}
+
+.questionCard.incorrectQuestion {
+  border-color: #f44336;
+  border-left: 6px solid #f44336;
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #eee;
+}
+
+.questionNumber {
+  font-size: 1.3rem;
+  color: #2d3436;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resultBadge {
+  font-size: 0.9rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.correctBadge {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.incorrectBadge {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.questionText {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #2d3436;
+  margin-bottom: 1.5rem;
+  padding: 0.8rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.optionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.optionItem {
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.optionItem:hover {
+  background: #f8f9fa;
+}
+
+.optionItem.selectedOption {
+  border-color: #593C8F;
+  background: rgba(89, 60, 143, 0.05);
+}
+
+.optionItem.correctOption {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.optionItem.wrongSelectedOption {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.08);
+}
+
+.optionContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.optionLetter {
+  width: 28px;
+  height: 28px;
+  background: #593C8F;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.optionText {
+  flex-grow: 1;
+  font-size: 1rem;
+  color: #2d3436;
+}
+
+/* Indicadores de status */
+.correctIndicator,
+.wrongIndicator,
+.correctSelectedIndicator {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.correctIndicator {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+}
+
+.wrongIndicator {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.correctSelectedIndicator {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .answersGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sectionTitle {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .scorePercentage {
+    margin-left: 0;
+  }
+  
+  .optionContent {
+    flex-wrap: wrap;
+  }
+  
+  .correctIndicator,
+  .wrongIndicator,
+  .correctSelectedIndicator {
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+}
+
+/* Estilo para o cabeçalho do jogador */
+.playerHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.playerAvatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: white;
+}
+
+.playerInfo {
+  flex-grow: 1;
+}
+
+.playerName {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2d3436;
+  margin: 0 0 0.3rem 0;
+}
+
+.playerScore {
+  font-size: 1.1rem;
+  color: #636e72;
+}
+
+/* Estatísticas do jogador */
+.playerStats {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.statItem {
+  text-align: center;
+  flex: 1;
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #593C8F;
+  display: block;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: #636e72;
+  margin-top: 0.3rem;
+}
+
+/* Se você quiser mostrar o cabeçalho do jogador, adicione isso antes da seção de detalhamento */
+/*
+{sessionPlayerId && currentPlayer && (
+  <div className={styles.playerHeader}>
+    <div className={styles.playerAvatar}>
+      <span>{currentPlayer.emoji}</span>
+    </div>
+    <div className={styles.playerInfo}>
+      <h3 className={styles.playerName}>{currentPlayer.nickname}</h3>
+      <div className={styles.playerScore}>
+        {playerScore} acertos de {totalQuestions} perguntas
+      </div>
+    </div>
+  </div>
+)}
+*/

@@ -1,324 +1,240 @@
-# 🎯 Estrutura do Projeto — Quiz (React + Vite + Tailwind + MUI)
+## ✅ **README.md (copie tudo)**
+# 🌐 Projeto de Desenvolvimento Web 2 — APS  
+### Técnico Integrado em Informática — UTFPR – 3° Ano  
+---
 
-Este documento descreve detalhadamente a estrutura de pastas e arquivos do projeto **Quiz App**, explicando o propósito de cada diretório e arquivo dentro da aplicação.
+## 📘 Sumário
+- [Sobre o Projeto](#sobre-o-projeto)
+- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+- [Navegação entre Páginas](#navegação-entre-páginas)
+- [Integrantes do Grupo](#integrantes-do-grupo)
+- [Responsabilidades e Contribuições](#responsabilidades-e-contribuições)
+  - [Samara](#samara)
+  - [Marjory](#marjory)
+  - [Marlon](#marlon)
+  - [Talisson](#talisson)
+- [Estrutura do Banco de Dados](#estrutura-do-banco-de-dados)
+- [Principais Recursos das Páginas](#principais-recursos-das-páginas)
+- [Home.jsx](#homejsx)
+- [CreateQuiz.jsx](#createquizjsx)
 
 ---
 
-## 📁 Estrutura Geral
+# 📌 Sobre o Projeto  
+Este projeto faz parte das disciplinas **DW2** e **APS**, tendo como objetivo desenvolver um sistema completo de criação e gerenciamento de quizzes — incluindo back-end com Supabase, autenticação, criação de perguntas e respostas, sessões em tempo real e rankings.
+
+---
+
+# 🛠 Tecnologias Utilizadas  
+- **React + Vite + JSX**  
+- **CSS Modules**  
+- **Material UI (pouco utilizado)**  
+- **Supabase (Database + Auth + Realtime)**  
+
+---
+
+# 📍 Navegação entre Páginas  
+| Página | Função |
+|--------|--------|
+| **/home** | lista quizzes do usuário |
+| **/createquiz** | criação/edição de quiz |
+| **/sessao** | controle de sessão do quiz |
+| **/pergunta** | página de perguntas para jogadores |
+| **/finalsessao** | ranking e análise final da sessão |
+
+Links (exemplo de navegação Github interna):  
+- [Home](#homejsx)  
+- [CreateQuiz](#createquizjsx)  
+- [Estrutura do Banco](#estrutura-do-banco-de-dados)  
+
+---
+
+# 👩‍💻👨‍💻 Integrantes do Grupo
+- **Marjory**
+- **Marlon**
+- **Samara**
+- **Talisson**
+
+---
+
+# 🧩 Responsabilidades e Contribuições
+
+## 🟦 Samara
+Participou ativamente da **estrutura visual**, incluindo:  
+- Criação do **framework visual** e **wireframes**.  
+- Organização completa do **Trello**, definindo prioridades e etapas.  
+- Desenvolvimento de diversas telas em **CSS modular** com base no Figma.  
+- Entregou páginas front-end para que o restante do time integrasse ao back-end.
+
+---
+
+## 🟩 Marjory
+Focou no funcionamento completo e integração com o **Supabase**:  
+- Construção da maior parte das **tabelas** e ajustes de relacionamentos.  
+- Desenvolvimento das páginas:  
+  - `criar_quiz`  
+  - `criar_conta`  
+  - `loginadm`  
+  - `home`  
+  - `viewquiz`  
+- Implementou:  
+  - Autenticação  
+  - Perfis de usuário  
+  - Conexão completa com banco  
+  - Inserção, listagem, leitura e atualização de quizzes e perguntas  
+  - Lógica de categorias e carregamento dinâmico  
+  - Redirecionamentos, validações e tratamento de erros  
+
+---
+
+## 🟨 Marlon
+Responsável por:  
+- Lógica de **entrar em sessão**, **criar sessão**, **jogar quiz**.  
+- Criou os sistemas de **ranking** e página `finalsessao`.  
+- Auxiliou na criação do front das páginas de sessão.  
+- Adicionou colunas extras no banco e desenvolveu o sistema de **geração automática de códigos de sessão** direto no Supabase.  
+
+---
+
+## 🟧 Talisson
+Contribuiu com:  
+- Suporte na tomada de decisões.  
+- Apoio básico para Samara no front-end.  
+- Auxiliou Samara e Marjory na organização geral do **Trello** e tarefas.  
+
+---
+
+# 🗄 Estrutura do Banco de Dados
+
+Abaixo está o **schema completo utilizado**, mantido exatamente como referência (não deve ser executado).  
+
+```sql
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.category (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  category_name text,
+  category_description text,
+  CONSTRAINT category_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.option (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  option_text text,
+  is_correct boolean,
+  question_id uuid,
+  CONSTRAINT option_pkey PRIMARY KEY (id),
+  CONSTRAINT option_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.question(id)
+);
+CREATE TABLE public.player_answer (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL,
+  session_player_id uuid NOT NULL,
+  quiz_question_id uuid NOT NULL,
+  option_id uuid,
+  time_taken integer,
+  answered_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT player_answer_pkey PRIMARY KEY (id),
+  CONSTRAINT player_answer_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.session(id),
+  CONSTRAINT player_answer_session_player_id_fkey FOREIGN KEY (session_player_id) REFERENCES public.session_player(id),
+  CONSTRAINT player_answer_quiz_question_id_fkey FOREIGN KEY (quiz_question_id) REFERENCES public.quiz_question(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  user_name text,
+  created_at timestamp without time zone,
+  email text,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.question (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  question_text text,
+  category_id uuid,
+  CONSTRAINT question_pkey PRIMARY KEY (id),
+  CONSTRAINT question_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.category(id)
+);
+CREATE TABLE public.quiz (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  quiz_name text,
+  quiz_description text,
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT quiz_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_quiz_created_by FOREIGN KEY (created_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.quiz_question (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  quiz_id uuid,
+  question_id uuid,
+  order_number integer,
+  CONSTRAINT quiz_question_pkey PRIMARY KEY (id),
+  CONSTRAINT quiz_question_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES public.quiz(id),
+  CONSTRAINT quiz_question_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.question(id)
+);
+CREATE TABLE public.session (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  quiz_id uuid NOT NULL,
+  code text NOT NULL DEFAULT generate_unique_session_code(),
+  name text,
+  description text,
+  created_by uuid,
+  created_at timestamp with time zone DEFAULT now(),
+  status text DEFAULT 'pending'::text,
+  current_order integer DEFAULT 0,
+  question_started_at timestamp with time zone,
+  question_time_limit integer DEFAULT 20,
+  CONSTRAINT session_pkey PRIMARY KEY (id),
+  CONSTRAINT session_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES public.quiz(id),
+  CONSTRAINT session_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.session_player (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL,
+  profile_id uuid,
+  nickname text NOT NULL,
+  emoji text NOT NULL,
+  color text NOT NULL,
+  is_admin boolean DEFAULT false,
+  connected boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  correct_answers integer DEFAULT 0,
+  CONSTRAINT session_player_pkey PRIMARY KEY (id),
+  CONSTRAINT session_player_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.session(id)
+);
 ```
-quizAPS4B/ 
-│
-├── public/
-│ └── favicon.ico
-│
-├── src/
-│ ├── assets/
-│ ├── components/
-│ ├── pages/
-│ ├── routes/
-│ ├── context/
-│ ├── hooks/
-│ ├── services/
-│ ├── styles/
-│ ├── utils/
-│ ├── App.jsx
-│ ├── main.jsx
-│ └── vite-env.d.ts
-│
-├── tailwind.config.js
-├── package.json
-├── postcss.config.js
-├── index.html
-└── README.md
-```
 
 ---
 
-## 📦 Diretórios Principais
-
-### 🗂️ **public/**
-Contém arquivos estáticos acessíveis diretamente pelo navegador, como o **favicon**, imagens públicas ou ícones que não passam pelo processo de build do Vite.
-
-> **Exemplo:**  
-> - `favicon.ico`: Ícone exibido na aba do navegador.
+# 📄 Principais Recursos das Páginas
 
 ---
 
-### 🎨 **src/assets/**
-Armazena todos os **recursos estáticos** utilizados dentro dos componentes ou páginas, como imagens, sons e ícones.
-
-**Estrutura interna:**
-assets/
-├── logo.svg
-└── backgrounds/
-
-- `logo.svg`: Logotipo principal da aplicação.
-- `backgrounds/`: Imagens de fundo, texturas ou elementos visuais de apoio.
-
-> ✅ **Boas práticas:** mantenha nomes claros e padronizados (`logoDark.svg`, `loginBg.png`).
+## 🏠 Home.jsx
+- Carrega quizzes do usuário logado.  
+- Busca `user_name` na tabela `profiles`.  
+- Permite criar, visualizar e editar quizzes.  
+- Ajusta layout automaticamente via `resize`.  
+- Armazena o `quizId` no `localStorage` para navegação.
 
 ---
 
-### ⚙️ **src/components/**
-Contém **componentes reutilizáveis** que podem ser usados em diferentes partes da aplicação.
-
-#### 📂 `ui/`
-Componentes **genéricos e visuais**, como botões, inputs, e containers de interface.
-
-- `CustomButton.jsx` → botão personalizado com estilos do Tailwind + MUI.  
-- `TextInput.jsx` → campo de entrada reutilizável com validação.  
-- `CardContainer.jsx` → container visual padrão para blocos de conteúdo.
-
-#### 📂 `layout/`
-Componentes que **organizam a estrutura visual** das páginas.
-
-- `Navbar.jsx` → barra de navegação principal.  
-- `Footer.jsx` → rodapé do site.  
-- `Sidebar.jsx` → menu lateral usado em dashboards.
-
-#### 📂 `quiz/`
-Componentes **específicos do jogo de quiz**.
-
-- `QuestionCard.jsx` → exibe a pergunta e opções de resposta.  
-- `Timer.jsx` → cronômetro para cada rodada.  
-- `Scoreboard.jsx` → mostra a pontuação e ranking dos jogadores.
-
----
-
-### 🧭 **src/pages/**
-Reúne as **páginas principais** da aplicação, divididas conforme as rotas.
-
-#### 📂 `Auth/`
-Telas relacionadas à autenticação do usuário.
-- `Login.jsx` → página de login.  
-- `Register.jsx` → página de cadastro.
-
-#### 📂 `Dashboard/`
-Área administrativa para gerenciamento de salas e quizzes.
-- `ManageRooms.jsx` → lista e edita salas existentes.  
-- `CreateRoom.jsx` → formulário de criação de novas salas.  
-- `DashboardHome.jsx` → painel inicial do administrador.
-
-#### 📂 `PlayerRoom/`
-Tela onde os jogadores interagem e jogam.
-- `RoomLobby.jsx` → sala de espera antes do início do jogo.  
-- `QuizGame.jsx` → onde o jogador responde perguntas.  
-- `Results.jsx` → mostra o resultado final após o jogo.
-
-#### Outras páginas:
-- `Home.jsx` → página inicial da aplicação.  
-- `NotFound.jsx` → página de erro 404.
-
----
-
-### 🚦 **src/routes/**
-Gerencia as **rotas e navegação** da aplicação.
-
-- `AppRoutes.jsx` → define todas as rotas do app com o React Router.  
-- `ProtectedRoute.jsx` → componente que restringe o acesso a rotas protegidas (exige login/autenticação).
-
----
-
-### 🧩 **src/context/**
-Armazena **Context APIs** para gerenciamento de estado global.
-
-- `AuthContext.jsx` → controla autenticação, usuário atual e token.  
-- `QuizContext.jsx` → armazena dados do quiz (perguntas, pontuação, progresso).
-
-> 💡 Usado junto com o hook `useContext()` para compartilhar dados entre páginas sem precisar repassar props manualmente.
-
----
-
-### 🪝 **src/hooks/**
-Contém **hooks personalizados** que abstraem lógicas reutilizáveis.
-
-- `useAuth.js` → facilita acesso e atualização dos dados de autenticação.  
-- `useQuiz.js` → manipula estados e regras do quiz.  
-- `useCountdown.js` → controla contagem regressiva para perguntas ou início de partida.
-
----
-
-### 🔌 **src/services/**
-Centraliza a **comunicação com APIs** externas ou banco de dados.
-
-- `api.js` → configuração principal do Axios ou fetch.  
-- `authService.js` → login, registro e logout.  
-- `roomService.js` → criação e gerenciamento de salas.  
-- `quizService.js` → manipulação de perguntas, respostas e resultados.
-
-> ✅ Mantém o código organizado e evita repetição de chamadas HTTP.
-
----
-
-### 💅 **src/styles/**
-Responsável pelos **estilos globais** e configuração visual do projeto.
-
-- `index.css` → arquivo global do Tailwind.  
-- `theme.js` → personalizações do **Material UI** (cores, fontes, temas escuros, etc).
-
----
-
-### 🧮 **src/utils/**
-Contém **funções auxiliares e constantes** usadas em vários lugares.
-
-- `formatTime.js` → formata segundos para “mm:ss”.  
-- `validateEmail.js` → validação simples de e-mail.  
-- `constants.js` → variáveis globais (ex: tempo padrão, número de questões).
-
----
-
-### 🧠 **Arquivos principais**
-
-- `App.jsx` → componente raiz da aplicação; define layout principal e integração de rotas.  
-- `main.jsx` → ponto de entrada do Vite que renderiza o `<App />`.  
-- `vite-env.d.ts` → arquivo de tipagem gerado automaticamente pelo Vite.
-
----
-
-## 🧱 Nomes de Funções e Variáveis — Padrão camelCase
-
-Para manter a consistência do código, use o padrão **camelCase**:
-
-| Tipo | Exemplo | Explicação |
-|------|----------|------------|
-| Variável simples | `userName`, `roomCode` | Começa com minúscula, cada nova palavra inicia com maiúscula. |
-| Função | `handleLogin()`, `fetchQuestions()` | Sempre inicia com um verbo descritivo. |
-| Estado React | `[isLoading, setIsLoading]` | use o prefixo `is`, `has` ou `show` para booleanos. |
-| Hook customizado | `useAuth()`, `useQuiz()` | Sempre começa com `use`. |
-| Contexto | `AuthContext`, `QuizContext` | PascalCase (primeira letra maiúscula). |
-
-> ⚠️ **Evite:** `snake_case`, `kebab-case` ou abreviações excessivas.  
-> ✅ **Prefira:** nomes curtos, claros e descritivos — ex: `handleCreateRoom`, `playerScore`, `startCountdown`.
-
----
-
-## ✅ Boas Práticas de Organização
-
-- Mantenha **cada componente em seu contexto lógico** (UI, layout, quiz).  
-- Evite duplicar lógica — use **hooks e contextos** sempre que possível.  
-- Nomeie arquivos e funções de forma **autoexplicativa**.  
-- Utilize **imports absolutos** se possível (ex: `@/components/ui/CustomButton`).  
-- Comente partes complexas do código, mas evite comentários redundantes.
-
----
-
-## 🧩 Tecnologias Utilizadas
-- **React + Vite** → estrutura base e build rápido.
-- **TailwindCSS** → estilização responsiva e utilitária.
-- **Material UI (MUI)** → componentes visuais prontos e customizáveis.
-- **React Router DOM** → controle de rotas e navegação.sim
----
-
-## ✍️ Convenção de Nomes — Funções, Variáveis e Componentes
-
-Manter um padrão de nomenclatura consistente é essencial para garantir **clareza, legibilidade e manutenção** do código.  
-Neste projeto, seguimos o padrão **camelCase** e **PascalCase**, amplamente usados no ecossistema React.
-
----
-
-### 🐫 1. camelCase
-
-    Usado para:
-    - Variáveis comuns
-    - Funções
-    - Estados (useState)
-    - Hooks personalizados (com o prefixo `use`)
-
-    📘 **Formato:**  
-
-    ```js
-    let playerScore = 0;
-    const roomCode = "AB12";
-    function handleLogin() { ... }
-    const fetchQuizData = async () => { ... };
-    ```
----
-
-### 🧠 2. PascalCase
-
-    Usado para:
-    - Componentes React
-    - Contextos
-    - Classes (caso aplicável)
-
-    📘 **Formato:**
-    ```js
-    function LoginPage() { ... }
-    const QuizContext = createContext();
-    export default CustomButton;
-    ```  
-
----
-### ⚙️ 3. Nomes de Funções — boas práticas
-1. Use verbos descritivos que indiquem a ação executada:
-    - get, set, handle, fetch, create, update, delete, validate, toggle
-
-    - Exemplo:
-
-    ```
-    function handleSubmitForm() {}
-    function fetchQuestions() {}
-    function validateEmailInput() {}
-    ```
-
-2. Evite nomes genéricos ou curtos demais:
-    ❌ doThing(), func(), x(), dataHandler()
-    ✅ handleStartQuiz(), updateUserScore()
-
-3. Prefira consistência:
-    Se você usa handle para eventos (handleLogin, handleLogout), mantenha o padrão em todo o código.
----
-### ⚡ 4. Estados e Setters (useState)
-
-Estados do React seguem o formato:
-```
-const [isLoading, setIsLoading] = useState(false);
-const [playerName, setPlayerName] = useState("");
-```
----
-### 🪝 5. Hooks personalizados
-
-Hooks devem sempre:
-
-- Começar com o prefixo use
-
-- Usar camelCase
-
-- Ter nomes descritivos que expliquem sua função
-
-✅ Exemplos corretos:
-```
-useAuth();
-useQuiz();
-useCountdown();
-```
----
-### 🌐 6. Contextos
-
-Contextos devem usar PascalCase e terminar com Context.
-
-✅ Exemplos corretos:
-```
-AuthContext
-QuizContext
-ThemeContext
-```
----
-### 💬 7. Constantes e Objetos
-
-Constantes globais podem usar MAIÚSCULAS_COM_UNDERSCORE,
-mas variáveis internas e locais continuam em camelCase.
-
-✅ Exemplos corretos:
-```
-const API_BASE_URL = "https://api.quizapp.com";
-const maxPlayers = 8;
-```
----
-
-## 💡 Conclusão
-
-Essa estrutura foi projetada para oferecer **clareza, escalabilidade e fácil manutenção**, permitindo que o projeto cresça de forma organizada, sem perder a coerência entre as camadas de UI, lógica e dados.
-
----
+## 📝 CreateQuiz.jsx
+Funcionalidades principais:
+
+- Criar quiz novo ou editar existente  
+- Buscar categorias do banco  
+- Criar perguntas e opções  
+- Controlar qual opção é correta  
+- Listar perguntas do quiz  
+- Carregar banco interno de perguntas  
+- Sincronizar com Supabase  
+- Editar perguntas existentes  
+- Inserir em `quiz_question`, `question` e `option`  
+- Usar filtros por categoria  
+- Utilizar banco de perguntas para reutilização (evita duplicação)
 

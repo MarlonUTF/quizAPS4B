@@ -1,4 +1,3 @@
-## ✅ **README.md (copie tudo)**
 # 🌐 Projeto de Desenvolvimento Web 2 — APS  
 ### Técnico Integrado em Informática — UTFPR – 3° Ano  
 ---

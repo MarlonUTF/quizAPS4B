@@ -254,12 +254,12 @@
   font-size: xx-large;
   font-weight: bolder;
   width: 100vw;
-  height: 20vh;
+  height: 30vh;
   position: relative;
 }
 
 .logo {
-  width: 120px;
+  width: 10px;
   height: auto;
   position: absolute;
   left: 50%;
@@ -325,6 +325,12 @@
   .resultsWrapper {
     padding: 0.5rem;
   }
+  .textoTitulo{
+    font-size: larger;
+  }
+  .titulo{
+    height: 40vh;
+  }
 
   .resultsContainer {
     flex-direction: column;
@@ -369,6 +375,12 @@
 @media (max-width: 480px) {
   .resultsWrapper {
     padding: 0.25rem;
+  }
+  .textoTitulo{
+    font-size: larger;
+  }
+  .titulo{
+    height: 40vh;
   }
 
   .resultsContainer {

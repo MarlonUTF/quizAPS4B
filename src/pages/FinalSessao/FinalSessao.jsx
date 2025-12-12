@@ -28,6 +28,7 @@ export default function FinalSessaoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [questionsData, setQuestionsData] = useState([]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -77,15 +78,31 @@ export default function FinalSessaoPage() {
       setSession(sessionData);
       setQuiz(sessionData.quiz);
 
-      // 2. Carregar total de perguntas no quiz
-      const { data: questionsData, error: questionsError } = await supabase
+      // 2. Carregar todas as perguntas do quiz com as opções corretas
+      const { data: quizQuestions, error: questionsError } = await supabase
         .from("quiz_question")
-        .select("id")
+        .select(`
+          id,
+          question:question_id (
+            id,
+            options:option(*)
+          )
+        `)
         .eq("quiz_id", sessionData.quiz_id);
 
-      if (!questionsError && questionsData) {
-        setTotalQuestions(questionsData.length);
-      }
+      if (questionsError) throw new Error("Erro ao carregar perguntas");
+      
+      // Mapear quiz_question_id para a opção correta
+      const correctAnswersMap = {};
+      quizQuestions.forEach(qq => {
+        const correctOption = qq.question?.options?.find(opt => opt.is_correct === true);
+        if (correctOption) {
+          correctAnswersMap[qq.id] = correctOption.id;
+        }
+      });
+
+      setTotalQuestions(quizQuestions.length);
+      setQuestionsData(quizQuestions);
 
       // 3. Carregar jogadores da sessão
       const { data: playersData, error: playersError } = await supabase
@@ -106,14 +123,9 @@ export default function FinalSessaoPage() {
       const playersWithScores = await Promise.all(
         playersData.map(async (player) => {
           // Buscar respostas do jogador
-          const { data: answers, error: answersError } = await supabase
+          const { data: playerAnswers, error: answersError } = await supabase
             .from("player_answer")
-            .select(`
-              option_id,
-              option:option_id (
-                is_correct
-              )
-            `)
+            .select("quiz_question_id, option_id")
             .eq("session_player_id", player.id)
             .eq("session_id", sessionId);
 
@@ -124,21 +136,30 @@ export default function FinalSessaoPage() {
               emoji: player.emoji,
               cor: player.color,
               acertos: 0,
+              total: quizQuestions.length,
               sessionPlayerId: player.id,
               isCurrentPlayer: player.id === sessionPlayerId
             };
           }
 
-          // Contar respostas corretas
-          const correctAnswers = answers?.filter(answer => 
-            answer.option?.is_correct === true
-          ) || [];
+          // Contar respostas corretas comparando com o mapa de respostas corretas
+          let correctCount = 0;
+          
+          if (playerAnswers && playerAnswers.length > 0) {
+            playerAnswers.forEach(answer => {
+              const correctOptionId = correctAnswersMap[answer.quiz_question_id];
+              if (correctOptionId && answer.option_id === correctOptionId) {
+                correctCount++;
+              }
+            });
+          }
 
           return {
             nome: player.nickname,
             emoji: player.emoji,
             cor: player.color,
-            acertos: correctAnswers.length,
+            acertos: correctCount,
+            total: quizQuestions.length,
             sessionPlayerId: player.id,
             isCurrentPlayer: player.id === sessionPlayerId
           };
@@ -146,7 +167,16 @@ export default function FinalSessaoPage() {
       );
 
       // Ordenar por acertos (maior para menor)
-      const sortedPlayers = playersWithScores.sort((a, b) => b.acertos - a.acertos);
+      const sortedPlayers = playersWithScores.sort((a, b) => {
+        // Ordenar por acertos, depois por ordem de chegada (mais antigo primeiro)
+        if (b.acertos !== a.acertos) {
+          return b.acertos - a.acertos;
+        }
+        // Se empate em acertos, ordenar por ordem de criação
+        const aPlayer = playersData.find(p => p.id === a.sessionPlayerId);
+        const bPlayer = playersData.find(p => p.id === b.sessionPlayerId);
+        return new Date(aPlayer.created_at) - new Date(bPlayer.created_at);
+      });
       
       // Adicionar posição (ranking)
       const rankedPlayers = sortedPlayers.map((player, index) => ({
@@ -214,7 +244,7 @@ export default function FinalSessaoPage() {
 
   // Fallback para dados se não houver jogadores
   const displayPlayers = players.length > 0 ? players : [
-    { nome: "Nenhum jogador", emoji: "😔", cor: "#CCCCCC", acertos: 0, posicao: 1 }
+    { nome: "Nenhum jogador", emoji: "😔", cor: "#CCCCCC", acertos: 0, posicao: 1, total: totalQuestions }
   ];
 
   return (

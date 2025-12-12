@@ -1,145 +1,306 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../../supabaseClient';
 import Header from '../../components/layout/Header/Header';
 import Logo from '../../../public/logo.png';
 import styles from './Pergunta.module.css';
 
 export default function Pergunta() {
-  // Dados de exemplo (mock)
-  const quiz = {
-    id: 1,
-    quiz_name: "Geografia do Brasil",
-    quiz_description: "Teste seus conhecimentos sobre o Brasil"
-  };
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const sessionId = searchParams.get('session');
+  const sessionPlayerId = searchParams.get('player');
 
-  // Perguntas de exemplo com 4 opções
-  const questions = [
-    {
-      id: 1,
-      text: "Qual é a capital do Brasil?",
-      options: [
-        { option_text: "São Paulo", is_correct: false, color: "#cf3f52" },
-        { option_text: "Rio de Janeiro", is_correct: false, color: "#6951a1" },
-        { option_text: "Brasília", is_correct: true, color: "#3fa09b" },
-        { option_text: "Salvador", is_correct: false, color: "#313191" }
-      ]
-    },
-    {
-      id: 2,
-      text: "Qual o maior estado do Brasil em território?",
-      options: [
-        { option_text: "Amazonas", is_correct: true, color: "#cf3f52" },
-        { option_text: "Mato Grosso", is_correct: false, color: "#6951a1" },
-        { option_text: "Pará", is_correct: false, color: "#3fa09b" },
-        { option_text: "Minas Gerais", is_correct: false, color: "#313191" }
-      ]
-    },
-    {
-      id: 3,
-      text: "Quantos estados tem o Brasil?",
-      options: [
-        { option_text: "26 estados", is_correct: false, color: "#cf3f52" },
-        { option_text: "27 estados", is_correct: true, color: "#6951a1" },
-        { option_text: "25 estados", is_correct: false, color: "#3fa09b" },
-        { option_text: "28 estados", is_correct: false, color: "#313191" }
-      ]
-    }
-  ];
-
+  const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(15);
-  const [isAnswered, setIsAnswered] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [player, setPlayer] = useState(null);
+  const [quiz, setQuiz] = useState(null);
+
+  const optionColors = ["#644dc4", "#9c27b0", "#2196f3", "#4caf50"];
 
   useEffect(() => {
-    if (timeLeft > 0 && !isAnswered) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isAnswered) {
-      handleAnswer(null);
+    if (!sessionId || !sessionPlayerId) {
+      navigate('/telaloginjogador');
+      return;
     }
-  }, [timeLeft, isAnswered]);
+    loadQuizData();
+  }, [sessionId, sessionPlayerId, navigate]);
 
-  const handleAnswer = (optionIndex) => {
-    if (isAnswered) return;
-    
-    setSelectedOption(optionIndex);
-    setIsAnswered(true);
-    
-    // Avançar após 1.5 segundos
-    setTimeout(() => {
-      if (currentQuestionIndex < questions.length - 1) {
-        proximaPergunta();
-      } else {
-        // Última pergunta - apenas resetar
-        setCurrentQuestionIndex(0);
-        setSelectedOption(null);
-        setIsAnswered(false);
-        setTimeLeft(15);
-        alert("Quiz finalizado! Reiniciando...");
+  const loadQuizData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Carregar sessão
+      const { data: session, error: sessionError } = await supabase
+        .from('session')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Carregar jogador
+      const { data: playerData, error: playerError } = await supabase
+        .from('session_player')
+        .select('*')
+        .eq('id', sessionPlayerId)
+        .eq('session_id', sessionId)
+        .single();
+
+      if (playerError) throw playerError;
+      setPlayer(playerData);
+
+      // Carregar quiz
+      const { data: quizData, error: quizError } = await supabase
+        .from('quiz')
+        .select('*')
+        .eq('id', session.quiz_id)
+        .single();
+
+      if (quizError) throw quizError;
+      setQuiz(quizData);
+
+      // Carregar perguntas com opções
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('quiz_question')
+        .select(`
+          id,
+          order_number,
+          question:question_id (
+            id,
+            question_text,
+            options:option(*)
+          )
+        `)
+        .eq('quiz_id', session.quiz_id)
+        .order('order_number', { ascending: true });
+
+      if (questionsError) throw questionsError;
+
+      if (!questionsData || questionsData.length === 0) {
+        throw new Error('Este quiz não tem perguntas');
       }
-    }, 1500);
+
+      // Processar perguntas com cores
+      const processedQuestions = questionsData.map(q => ({
+        quizQuestionId: q.id,
+        questionId: q.question.id,
+        text: q.question.question_text,
+        order: q.order_number,
+        options: q.question.options.map((opt, idx) => ({
+          ...opt,
+          color: optionColors[idx % optionColors.length]
+        }))
+      }));
+
+      setQuestions(processedQuestions);
+
+      // Carregar respostas existentes
+      const { data: existingAnswers, error: answersError } = await supabase
+        .from('player_answer')
+        .select('quiz_question_id, option_id')
+        .eq('session_player_id', sessionPlayerId)
+        .eq('session_id', sessionId);
+
+      if (!answersError && existingAnswers) {
+        const answersMap = {};
+        existingAnswers.forEach(answer => {
+          answersMap[answer.quiz_question_id] = answer.option_id;
+        });
+        setSelectedAnswers(answersMap);
+      }
+
+    } catch (err) {
+      console.error('Erro:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const proximaPergunta = () => {
-    setCurrentQuestionIndex(prev => prev + 1);
-    setSelectedOption(null);
-    setIsAnswered(false);
-    setTimeLeft(15);
+  const handleAnswerSelect = (questionId, optionId) => {
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [questionId]: optionId
+    }));
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    }
+  };
+
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const goToQuestion = (index) => {
+    if (index >= 0 && index < questions.length) {
+      setCurrentQuestionIndex(index);
+    }
+  };
+
+  const submitAnswers = async () => {
+    if (Object.keys(selectedAnswers).length === 0) {
+      const confirmSubmit = window.confirm(
+        'Você não respondeu nenhuma pergunta. Deseja enviar mesmo assim?'
+      );
+      if (!confirmSubmit) return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      // Limpar respostas anteriores (evitar duplicação)
+      const { error: deleteError } = await supabase
+        .from('player_answer')
+        .delete()
+        .eq('session_player_id', sessionPlayerId)
+        .eq('session_id', sessionId);
+
+      if (deleteError) console.warn('Aviso ao limpar respostas anteriores:', deleteError);
+
+      // Preparar e inserir novas respostas
+      const answersToInsert = Object.entries(selectedAnswers)
+        .filter(([_, optionId]) => optionId !== null && optionId !== undefined)
+        .map(([quizQuestionId, optionId]) => ({
+          session_id: sessionId,
+          session_player_id: sessionPlayerId,
+          quiz_question_id: quizQuestionId,
+          option_id: optionId,
+          answered_at: new Date().toISOString()
+        }));
+
+      if (answersToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('player_answer')
+          .insert(answersToInsert);
+
+        if (insertError) throw insertError;
+      }
+
+      // Redirecionar para a página finalsessao
+      navigate(`/finalsessao?session=${sessionId}&player=${sessionPlayerId}`);
+
+    } catch (err) {
+      console.error('Erro ao enviar:', err);
+      alert('Erro ao enviar respostas. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const currentQuestion = questions[currentQuestionIndex];
+  const answeredCount = Object.keys(selectedAnswers).filter(id => selectedAnswers[id] !== null).length;
+  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+  if (isLoading) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Carregando quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.errorContainer}>
+          <h3 className={styles.errorTitle}>⚠️ Erro ao carregar quiz</h3>
+          <p className={styles.errorText}>{error}</p>
+          <div className={styles.errorActions}>
+            <button
+              onClick={() => navigate('/telaloginjogador')}
+              className={styles.backButton}
+            >
+              Voltar
+            </button>
+            <button
+              onClick={loadQuizData}
+              className={styles.retryButton}
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageContainer}>
-      <Header />
-        {/* Logo Centralizada */}
-        <div className={styles.logoContainer}>
-          <img src={Logo} alt="Logo" className={styles.logo} />
+      <Header
+        playerName={player?.nickname}
+        playerEmoji={player?.emoji}
+        playerColor={player?.color}
+      />
+
+      <div className={styles.logoContainer}>
+        <img src={Logo} alt="Logo" className={styles.logo} />
+      </div>
+
+      {/* Progresso */}
+      <div className={styles.progressContainer}>
+        <div className={styles.progressBar}>
+          <div 
+            className={styles.progressFill}
+            style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+          ></div>
         </div>
-        
-        {/* Timer no canto superior direito */}
-        <div className={styles.timerContainer}>
-          <div className={styles.timerCircle}>
-            <span className={styles.timerText}>{timeLeft}<span className={styles.timerLabel}>s</span> </span>
-          </div>
+        <span className={styles.progressText}>
+          Pergunta {currentQuestionIndex + 1} de {questions.length}
+          <span className={styles.answeredCount}>
+            • {answeredCount} respondida{answeredCount !== 1 ? 's' : ''}
+          </span>
+        </span>
+      </div>
+
+      {/* Pergunta */}
+      <div className={styles.questionNumberContainer}>
+        <h2 className={styles.questionNumber}>
+          Pergunta {currentQuestionIndex + 1}
+        </h2>
+        <p className={styles.quizName}>{quiz?.quiz_name}</p>
+      </div>
+
+      <div className={styles.questionCard}>
+        <div className={styles.questionTextContainer}>
+          <p className={styles.questionText}>
+            {currentQuestion?.text || 'Pergunta não disponível'}
+          </p>
         </div>
-        
-        {/* Número da Pergunta */}
-        <div className={styles.questionNumberContainer}>
-          <h2 className={styles.questionNumber}>
-            Pergunta {currentQuestionIndex + 1}
-          </h2>
-          <p className={styles.quizName}>{quiz.quiz_name}</p>
-        </div>
-        
-        {/* Card da Pergunta - Mesmo estilo da criação */}
-        <div className={styles.questionCard}>
-          {/* Texto da Pergunta */}
-          <div className={styles.questionTextContainer}>
-            <p className={styles.questionText}>{currentQuestion.text}</p>
-          </div>
-          
-          {/* Separador */}
-          <div className={styles.separator}></div>
-          
-          {/* Opções - Mesmo estilo da criação */}
-          <div className={styles.optionsContainer}>
-            {currentQuestion.options.map((option, index) => (
-              <div 
-                key={index} 
-                className={`
-                  ${styles.optionBox}
-                  ${selectedOption === index ? styles.optionSelected : ''}
-                `}
-                style={{ 
+
+        <div className={styles.separator}></div>
+
+        {/* Opções */}
+        <div className={styles.optionsContainer}>
+          {currentQuestion?.options?.map((option, index) => {
+            const isSelected = selectedAnswers[currentQuestion.quizQuestionId] === option.id;
+            
+            return (
+              <div
+                key={option.id}
+                className={`${styles.optionBox} ${isSelected ? styles.optionSelected : ''}`}
+                style={{
                   backgroundColor: option.color,
                   borderLeftColor: option.color
                 }}
               >
                 <button
                   className={styles.optionButton}
-                  onClick={() => handleAnswer(index)}
-                  disabled={isAnswered}
+                  onClick={() => handleAnswerSelect(currentQuestion.quizQuestionId, option.id)}
+                  disabled={selectedAnswers[currentQuestion.quizQuestionId] !== undefined}
                 >
                   <div className={styles.optionContent}>
                     <span className={styles.optionLetter}>
@@ -148,50 +309,78 @@ export default function Pergunta() {
                     <span className={styles.optionText}>
                       {option.option_text}
                     </span>
+                    {isSelected && (
+                      <span className={styles.selectedIndicator}>✓</span>
+                    )}
                   </div>
                 </button>
               </div>
-            ))}
-          </div>
-          
-          {/* Status */}
-          <div className={styles.statusContainer}>
-            {isAnswered ? (
-              <div className={styles.answeredStatus}>
-                <span>Resposta enviada!</span>
-                {currentQuestionIndex < questions.length - 1 && (
-                  <span className={styles.nextQuestionText}>
-                    Próxima pergunta em breve...
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div className={styles.waitingStatus}>
-                <span>Escolha uma opção acima</span>
-                <span className={styles.timeWarning}>
-                  ⏰ Tempo restante: {timeLeft}s
-                </span>
-              </div>
-            )}
-          </div>
-          
-          {/* Progresso */}
-          <div className={styles.progressContainer}>
-            <div className={styles.progressBar}>
-              <div 
-                className={styles.progressFill}
-                style={{ 
-                  width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` 
-                }}
-              ></div>
-            </div>
-            <span className={styles.progressText}>
-              {currentQuestionIndex + 1} de {questions.length} perguntas
-            </span>
-          </div>
+            );
+          })}
         </div>
+
+        {/* Status */}
+        <div className={styles.statusContainer}>
+          {selectedAnswers[currentQuestion?.quizQuestionId] !== undefined ? (
+            <div className={styles.answeredStatus}>
+              <span>✅ Resposta selecionada</span>
+              {!isLastQuestion && (
+                <button
+                  onClick={goToNextQuestion}
+                  className={styles.nextButton}
+                >
+                  Próxima Pergunta →
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className={styles.waitingStatus}>
+              <span>👉 Selecione uma opção acima</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Navegação */}
+      <div className={styles.navigationContainer}>
+        <button
+          onClick={goToPreviousQuestion}
+          disabled={currentQuestionIndex === 0}
+          className={styles.navButton}
+        >
+          ← Anterior
+        </button>
         
-      
+        <div className={styles.pageNumbers}>
+          {questions.map((_, index) => {
+            const hasAnswer = selectedAnswers[questions[index]?.quizQuestionId] !== undefined;
+            return (
+              <button
+                key={index}
+                onClick={() => goToQuestion(index)}
+                className={`${styles.pageBtn} ${index === currentQuestionIndex ? styles.active : ''} ${hasAnswer ? styles.answered : ''}`}
+                title={`Pergunta ${index + 1}${hasAnswer ? ' (respondida)' : ''}`}
+              >
+                {index + 1}
+              </button>
+            );
+          })}
+        </div>
+
+        {isLastQuestion ? (
+          <button 
+            onClick={submitAnswers}
+            disabled={isSubmitting}
+            className={styles.finishButton}
+          >
+            {isSubmitting ? 'Enviando...' : '🏁 Finalizar Quiz'}
+          </button>
+        ) : (
+          <button onClick={goToNextQuestion} className={styles.navButton}>
+            Próxima →
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -264,7 +264,7 @@ export default function FinalSessaoPage() {
           <h3>⚠️ Erro ao carregar resultados</h3>
           <p className={styles.errorMessage}>{error}</p>
           <div className={styles.errorActions}>
-            <button onClick={() => navigate("/inicio")} className={styles.backButton}>
+            <button onClick={() => navigate("/")} className={styles.backButton}>
               Voltar ao início
             </button>
             <button onClick={loadSessionData} className={styles.retryButton}>

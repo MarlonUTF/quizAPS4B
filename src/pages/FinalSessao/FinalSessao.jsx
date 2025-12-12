@@ -242,7 +242,7 @@ export default function FinalSessaoPage() {
     }
   };
 
-  const handleBackToHome = () => navigate("/inicio");
+  const handleBackToHome = () => navigate("/");
 
   if (isLoading) {
     return (

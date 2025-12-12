@@ -1,34 +1,72 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
+import Confetti from "react-confetti";
 import FinalSessao from "../../components/layout/Colocacao/Colocacao";
 import VerticalBarChart from "../../components/layout/BarChart/VerticalBarChart";
 import Header from "../../components/layout/Header/Header";
-import styles from "./gerenciamentoSessao.module.css";
+import styles from "../FinalSessao/finalSessao.module.css";
 import Logo from "../../../public/logo.png";
 
 export default function FinalSessaoPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const sessionId = searchParams.get("session");
+  const sessionPlayerId = searchParams.get("player");
+
+  const [showConfetti, setShowConfetti] = useState(true);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-  
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutos em segundos
-  const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [totalQuestions, setTotalQuestions] = useState(12);
-  const [isSessionActive, setIsSessionActive] = useState(true);
-  
-  const navigate = useNavigate();
 
-  const jogadoresReais = [
-    { nome: "usuario1", emoji: "😊", cor: "#D7BDE2", acertos: 10 },
-    { nome: "usuario2", emoji: "😎", cor: "#F1948A", acertos: 20 },
-    { nome: "usuario3", emoji: "🤠", cor: "#85C1E9", acertos: 30 },
-    { nome: "usuario4", emoji: "🤖", cor: "#F7DC6F", acertos: 40 },
-    { nome: "usuario5", emoji: "👻", cor: "#82E0AA", acertos: 50 },
-  ];
+  const [session, setSession] = useState(null);
+  const [quiz, setQuiz] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [questionsData, setQuestionsData] = useState([]);
+
+  // ---------------------------
+  // 🔥 ATUALIZA AUTO - REALTIME
+  // ---------------------------
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const channel = supabase
+      .channel(`final_sessao_${sessionId}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "player_answer",
+        filter: `session_id=eq.${sessionId}`,
+      }, () => {
+        loadSessionData();
+      })
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "session_player",
+        filter: `session_id=eq.${sessionId}`,
+      }, () => {
+        loadSessionData();
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [sessionId]);
 
   useEffect(() => {
-    // Atualizar tamanho da janela
+    if (!sessionId) {
+      navigate("/telaloginjogador");
+      return;
+    }
+
+    loadSessionData();
+
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
@@ -38,194 +76,248 @@ export default function FinalSessaoPage() {
 
     window.addEventListener("resize", handleResize);
 
-    // Cronômetro regressivo
-    if (isSessionActive && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        clearInterval(timer);
-      };
-    }
+    const timer = setTimeout(() => {
+      setShowConfetti(false);
+    }, 10000);
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
     };
-  }, [isSessionActive, timeLeft]);
+  }, [sessionId, navigate]);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
-  const handleBackToHome = () => {
-    navigate("/inicio");
-  };
+  // ---------------------------
+  // 🔥 CARREGA TUDO DO BANCO
+  // ---------------------------
+  const loadSessionData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-  const handleEndSession = () => {
-    if (window.confirm("Tem certeza que deseja encerrar a sessão?")) {
-      setIsSessionActive(false);
-      // Aqui você pode adicionar lógica para enviar para o backend
-      setTimeout(() => {
-        navigate("/inicio");
-      }, 2000);
+    try {
+      const { data: sessionData, error: sessionError } = await supabase
+        .from("session")
+        .select(`
+          *,
+          quiz:quiz_id (*)
+        `)
+        .eq("id", sessionId)
+        .single();
+
+      if (sessionError) throw new Error("Sessão não encontrada");
+
+      setSession(sessionData);
+      setQuiz(sessionData.quiz);
+
+      const { data: quizQuestions, error: questionsError } = await supabase
+        .from("quiz_question")
+        .select(`
+          id,
+          question:question_id (
+            id,
+            options:option(*)
+          )
+        `)
+        .eq("quiz_id", sessionData.quiz_id);
+
+      if (questionsError) throw new Error("Erro ao carregar perguntas");
+
+      const correctAnswersMap = {};
+      quizQuestions.forEach((qq) => {
+        const correctOption = qq.question?.options?.find(
+          (opt) => opt.is_correct === true
+        );
+        if (correctOption) {
+          correctAnswersMap[qq.id] = correctOption.id;
+        }
+      });
+
+      setTotalQuestions(quizQuestions.length);
+      setQuestionsData(quizQuestions);
+
+      const { data: playersData, error: playersError } = await supabase
+        .from("session_player")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: true });
+
+      if (playersError) throw new Error("Erro ao carregar jogadores");
+
+      if (sessionPlayerId) {
+        const currentPlayerData = playersData.find(
+          (p) => p.id === sessionPlayerId
+        );
+        setCurrentPlayer(currentPlayerData);
+      }
+
+      const playersWithScores = await Promise.all(
+        playersData.map(async (player) => {
+          const { data: playerAnswers, error: answersError } = await supabase
+            .from("player_answer")
+            .select("quiz_question_id, option_id")
+            .eq("session_player_id", player.id)
+            .eq("session_id", sessionId);
+
+          if (answersError) {
+            console.error(
+              "Erro ao carregar respostas do jogador:",
+              player.nickname,
+              answersError
+            );
+            return {
+              nome: player.nickname,
+              emoji: player.emoji,
+              cor: player.color,
+              acertos: 0,
+              total: quizQuestions.length,
+              sessionPlayerId: player.id,
+              isCurrentPlayer: player.id === sessionPlayerId,
+            };
+          }
+
+          let correctCount = 0;
+
+          if (playerAnswers && playerAnswers.length > 0) {
+            playerAnswers.forEach((answer) => {
+              const correctOptionId = correctAnswersMap[answer.quiz_question_id];
+              if (correctOptionId && answer.option_id === correctOptionId) {
+                correctCount++;
+              }
+            });
+          }
+
+          return {
+            nome: player.nickname,
+            emoji: player.emoji,
+            cor: player.color,
+            acertos: correctCount,
+            total: quizQuestions.length,
+            sessionPlayerId: player.id,
+            isCurrentPlayer: player.id === sessionPlayerId,
+          };
+        })
+      );
+
+      // ============ TRECHO MODIFICADO - INÍCIO ============
+      const sortedPlayers = playersWithScores.sort((a, b) => {
+        // Ordena por acertos
+        if (b.acertos !== a.acertos) {
+          return b.acertos - a.acertos;
+        }
+
+        // Desempate por ordem de criação (quem entrou antes vence)
+        const aPlayer = playersData.find((p) => p.id === a.sessionPlayerId);
+        const bPlayer = playersData.find((p) => p.id === b.sessionPlayerId);
+        return new Date(aPlayer.created_at) - new Date(bPlayer.created_at);
+      });
+
+      // ---------- TRATAR EMPATES ----------
+      let lastScore = null;
+      let lastRank = 0;
+      let count = 0;
+
+      const rankedPlayers = sortedPlayers.map((player) => {
+        count++;
+
+        if (player.acertos !== lastScore) {
+          // Novo valor → atualizar rank
+          lastRank = count;
+          lastScore = player.acertos;
+        }
+
+        return {
+          ...player,
+          posicao: lastRank, // Jogadores empatados ficam com o mesmo rank
+        };
+      });
+
+      setPlayers(rankedPlayers);
+      // ============ TRECHO MODIFICADO - FIM ============
+
+    } catch (err) {
+      console.error("Erro ao carregar dados da sessão:", err);
+      setError(err.message || "Erro desconhecido");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestion < totalQuestions) {
-      setCurrentQuestion(prev => prev + 1);
-      // Resetar timer para nova pergunta (opcional)
-      setTimeLeft(60);
-    }
-  };
+  const handleBackToHome = () => navigate("/inicio");
 
-  const handlePrevQuestion = () => {
-    if (currentQuestion > 1) {
-      setCurrentQuestion(prev => prev - 1);
-      setTimeLeft(60);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className={styles.pageContainer}>
+        <Header />
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Carregando resultados...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Dados para o gráfico baseados na pergunta atual
-  const getQuestionData = () => {
-    const baseData = [
-      { label: "opção 1", value: 30, color: "#cf3f52" },
-      { label: "opção 2", value: 10, color: "#6951a1" },
-      { label: "opção 3", value: 20, color: "#3fa09b" },
-      { label: "opção 4", value: 40, color: "#1f2e7a" },
-    ];
-    
-    // Simular variação por pergunta
-    return baseData.map(option => ({
-      ...option,
-      value: Math.floor(option.value * (0.8 + Math.random() * 0.4))
-    }));
-  };
+  if (error) {
+    return (
+      <div className={styles.pageContainer}>
+        <Header />
+        <div className={styles.errorContainer}>
+          <h3>⚠️ Erro ao carregar resultados</h3>
+          <p className={styles.errorMessage}>{error}</p>
+          <div className={styles.errorActions}>
+            <button onClick={() => navigate("/inicio")} className={styles.backButton}>
+              Voltar ao início
+            </button>
+            <button onClick={loadSessionData} className={styles.retryButton}>
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const displayPlayers =
+    players.length > 0
+      ? players
+      : [{ nome: "Nenhum jogador", emoji: "😔", cor: "#CCC", acertos: 0, posicao: 1 }];
 
   return (
     <div className={styles.pageContainer}>
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          numberOfPieces={150}
+          gravity={0.05}
+          wind={0.005}
+          recycle={false}
+        />
+      )}
+
       <Header />
-      
-      {/* Barra Superior com Timer e Controles */}
-      <div className={styles.topControlBar}>
-        <div className={styles.timerContainer}>
-          <div className={styles.timerLabel}>Tempo Restante</div>
-          <div className={styles.timerDisplay}>
-            {formatTime(timeLeft)}
-          </div>
-        </div>
-        
-        <div className={styles.questionNav}>
-          <button 
-            className={`${styles.navButton} ${currentQuestion === 1 ? styles.disabled : ''}`}
-            onClick={handlePrevQuestion}
-            disabled={currentQuestion === 1}
-          >
-            ←
-          </button>
-          <div className={styles.questionIndicator}>
-            Pergunta {currentQuestion}/{totalQuestions}
-          </div>
-          <button 
-            className={`${styles.navButton} ${currentQuestion === totalQuestions ? styles.disabled : ''}`}
-            onClick={handleNextQuestion}
-            disabled={currentQuestion === totalQuestions}
-          >
-            →
-          </button>
-        </div>
-        
-        <button 
-          className={styles.endSessionButton}
-          onClick={handleEndSession}
-        >
-          Encerrar Sessão
-        </button>
-      </div>
+
+      <button className={styles.backToHomeButton} onClick={handleBackToHome}>
+        <span className={styles.buttonText}>Voltar ao Início</span>
+      </button>
 
       <div className={styles.titulo}>
-        <h1 className={styles.textoTitulo}>Gerenciamento da Sessão</h1>
+        <h1 className={styles.textoTitulo}>Ranking Final</h1>
         <img src={Logo} className={styles.logo} alt="Logo" />
       </div>
 
       <div className={styles.contentMain}>
         <div className={styles.resultsWrapper}>
           <div className={styles.resultsContainer}>
-            {/* Seção da Tabela de Classificação */}
             <div className={styles.tableSection}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>Participantes</h2>
-              </div>
-              <FinalSessao
-                jogadores={jogadoresReais}
-                titulo="Classificação"
-                mostrarDadosExemplo={false}
-              />
+              <FinalSessao jogadores={displayPlayers} titulo="Classificação" />
             </div>
 
-            {/* Seção do Gráfico */}
             <div className={styles.chartSection}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  Acertos Pergunta {currentQuestion}/{totalQuestions}
-                </h2>
-              </div>
-              <VerticalBarChart
-                jogadores={getQuestionData()}
-                titulo={`Distribuição de Respostas - Pergunta ${currentQuestion}`}
-              />
-              
-              {/* Legenda das Opções */}
-              <div className={styles.chartLegend}>
-                {getQuestionData().map((option, index) => (
-                  <div key={index} className={styles.legendItem}>
-                    <div 
-                      className={styles.legendColorBox}
-                      style={{ backgroundColor: option.color }}
-                    />
-                    <span className={styles.legendLabel}>
-                      {option.label}: {option.value} acertos
-                    </span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Tabela de Cenário (simulando cenários da pergunta) */}
-              <div className={styles.scenarioTable}>
-                <div className={styles.tableHeader}>
-                  <div className={styles.headerCell}>Cenário</div>
-                  <div className={styles.headerCell}>Acertos</div>
-                </div>
-                {getQuestionData().map((option, index) => (
-                  <div key={index} className={styles.tableRow}>
-                    <div className={styles.tableCell}>{option.label}</div>
-                    <div className={styles.tableCell}>{option.value}</div>
-                  </div>
-                ))}
-              </div>
+              <VerticalBarChart jogadores={displayPlayers} titulo="Performance da Partida" />
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Botão Voltar ao Início - Posição Fixa */}
-      <button 
-        className={styles.backToHomeButton}
-        onClick={handleBackToHome}
-        aria-label="Voltar ao início"
-      >
-        <span className={styles.buttonText}>Voltar ao Início</span>
-      </button>
     </div>
   );
 }

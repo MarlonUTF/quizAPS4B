@@ -30,7 +30,7 @@ export default function Home() {
     async function loadQuizzes() {
         setLoading(true);
 
-        // 🔥 PEGA O USUÁRIO LOGADO
+        // PEGA O USUÁRIO LOGADO
         const { data: userData, error: userError } = await supabase.auth.getUser();
 
         if (userError || !userData?.user) {
@@ -41,7 +41,7 @@ export default function Home() {
 
         const userId = userData.user.id;
 
-        // 🔥 BUSCA O NOME DO USUÁRIO NA TABELA PROFILES (COLUNA user_name)
+        // BUSCA O NOME DO USUÁRIO NA TABELA PROFILES (COLUNA user_name)
         const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("user_name")
@@ -54,7 +54,7 @@ export default function Home() {
             console.warn("user_name não encontrado no profile.");
         }
 
-        // 🔥 BUSCA APENAS QUIZZES DO USUÁRIO
+        // BUSCA APENAS QUIZZES DO USUÁRIO
         const { data, error } = await supabase
             .from("quiz")
             .select("*")
@@ -91,7 +91,7 @@ export default function Home() {
             <div className={styles.container}>
                 <img src={Logo} alt="Logo" height={150} width={150} />
 
-                {/* 🔥 AGORA MOSTRA O NOME DO USUÁRIO */}
+                {/* AGORA MOSTRA O NOME DO USUÁRIO */}
                 <h1>Olá, {userName || "usuário"}!</h1>
 
                 {loading ? (
